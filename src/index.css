@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  font-family: "Segoe UI", "Trebuchet MS", "Verdana", sans-serif;
+  font-family: "Trebuchet MS", "Segoe UI", Tahoma, Verdana, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

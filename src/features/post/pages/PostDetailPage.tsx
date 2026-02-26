@@ -1,11 +1,16 @@
 import { useParams } from "react-router-dom";
+import { AeroScene } from "../../../components/layout/AeroScene";
+import { GlassCard } from "../../../components/ui/GlassCard";
 
 export function PostDetailPage() {
   const { id } = useParams();
 
   return (
-    <main className="min-h-screen bg-slate-100 p-8 text-slate-900">
-      <h1 className="text-2xl font-semibold">Post {id}</h1>
-    </main>
+    <AeroScene>
+      <GlassCard className="mx-auto mt-8 max-w-3xl">
+        <h1 className="aero-heading text-2xl font-black">Post detail</h1>
+        <p className="aero-subtitle mt-2 text-sm">Post ID: {id}</p>
+      </GlassCard>
+    </AeroScene>
   );
 }
