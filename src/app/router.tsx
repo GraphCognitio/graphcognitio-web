@@ -4,11 +4,16 @@ import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { FeedPage } from "../features/feed/pages/FeedPage";
 import { PostDetailPage } from "../features/post/pages/PostDetailPage";
+import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/feed" replace />,
+    element: (
+      <ProtectedRoute>
+        <Navigate to="/feed" replace />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/login",
@@ -20,14 +25,26 @@ export const router = createBrowserRouter([
   },
   {
     path: "/feed",
-    element: <FeedPage />,
+    element: (
+      <ProtectedRoute>
+        <FeedPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/post/:id",
-    element: <PostDetailPage />,
+    element: (
+      <ProtectedRoute>
+        <PostDetailPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/graph/:rootId",
-    element: <GraphPage />,
+    element: (
+      <ProtectedRoute>
+        <GraphPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
