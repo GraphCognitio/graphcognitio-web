@@ -1,10 +1,21 @@
+import { lazy, Suspense, type ReactElement } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { GraphPage } from "../features/graph/pages/GraphPage";
-import { LoginPage } from "../features/auth/pages/LoginPage";
-import { RegisterPage } from "../features/auth/pages/RegisterPage";
-import { FeedPage } from "../features/feed/pages/FeedPage";
-import { PostDetailPage } from "../features/post/pages/PostDetailPage";
 import { ProtectedRoute } from "../features/auth/components/ProtectedRoute";
+import { RouteLoader } from "./RouteLoader";
+
+const LoginPage = lazy(() => import("../features/auth/pages/LoginPage").then((module) => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() =>
+  import("../features/auth/pages/RegisterPage").then((module) => ({ default: module.RegisterPage })),
+);
+const FeedPage = lazy(() => import("../features/feed/pages/FeedPage").then((module) => ({ default: module.FeedPage })));
+const PostDetailPage = lazy(() =>
+  import("../features/post/pages/PostDetailPage").then((module) => ({ default: module.PostDetailPage })),
+);
+const GraphPage = lazy(() => import("../features/graph/pages/GraphPage").then((module) => ({ default: module.GraphPage })));
+
+function withSuspense(element: ReactElement) {
+  return <Suspense fallback={<RouteLoader />}>{element}</Suspense>;
+}
 
 export const router = createBrowserRouter([
   {
@@ -17,34 +28,34 @@ export const router = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: withSuspense(<LoginPage />),
   },
   {
     path: "/register",
-    element: <RegisterPage />,
+    element: withSuspense(<RegisterPage />),
   },
   {
     path: "/feed",
-    element: (
+    element: withSuspense(
       <ProtectedRoute>
         <FeedPage />
-      </ProtectedRoute>
+      </ProtectedRoute>,
     ),
   },
   {
     path: "/post/:id",
-    element: (
+    element: withSuspense(
       <ProtectedRoute>
         <PostDetailPage />
-      </ProtectedRoute>
+      </ProtectedRoute>,
     ),
   },
   {
     path: "/graph/:rootId",
-    element: (
+    element: withSuspense(
       <ProtectedRoute>
         <GraphPage />
-      </ProtectedRoute>
+      </ProtectedRoute>,
     ),
   },
 ]);

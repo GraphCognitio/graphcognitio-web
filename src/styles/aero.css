@@ -171,8 +171,21 @@
   outline-offset: 2px;
 }
 
+@media (max-width: 900px) {
+  .aero-glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aero-glass::after {
     display: none;
+  }
+
+  .aero-float,
+  .aero-gel,
+  .aero-input {
+    transition: none;
   }
 }

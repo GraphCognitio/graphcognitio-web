@@ -20,13 +20,15 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
 
   return (
     <article
-      className="aero-glass absolute overflow-hidden p-4 transition hover:scale-[1.01]"
+      className="aero-glass aero-focus-ring absolute overflow-hidden p-4 transition hover:scale-[1.01]"
       style={{
         width: `${node.width}px`,
         height: `${node.height}px`,
         left: `${node.x - node.width / 2}px`,
         top: `${node.y - node.height / 2}px`,
       }}
+      aria-label={`Post by ${post.authorName}`}
+      role="button"
       tabIndex={0}
       onClick={() => onInspect(node.id)}
       onKeyDown={(event) => {
