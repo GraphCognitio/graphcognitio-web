@@ -13,6 +13,7 @@ type Particle = {
   vy: number;
   radius: number;
   alpha: number;
+  kind: "dot" | "spark";
 };
 
 export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps) {
@@ -50,13 +51,15 @@ export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps)
       particles.length = 0;
       const count = reducedMotion ? Math.floor(density / 3) : density;
       for (let index = 0; index < count; index += 1) {
+        const spark = index % 7 === 0;
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.14,
-          vy: (Math.random() - 0.5) * 0.12,
-          radius: 0.9 + Math.random() * 2.2,
-          alpha: 0.1 + Math.random() * 0.24,
+          vx: (Math.random() - 0.5) * (spark ? 0.08 : 0.14),
+          vy: (Math.random() - 0.5) * (spark ? 0.07 : 0.12),
+          radius: spark ? 2.2 + Math.random() * 1.4 : 0.9 + Math.random() * 2.2,
+          alpha: spark ? 0.22 + Math.random() * 0.22 : 0.08 + Math.random() * 0.22,
+          kind: spark ? "spark" : "dot",
         });
       }
     };
@@ -83,6 +86,18 @@ export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps)
         if (particle.x > width + 10) particle.x = -10;
         if (particle.y < -10) particle.y = height + 10;
         if (particle.y > height + 10) particle.y = -10;
+
+        if (particle.kind === "spark") {
+          context.strokeStyle = `rgba(238, 252, 255, ${particle.alpha})`;
+          context.lineWidth = 1.1;
+          context.beginPath();
+          context.moveTo(particle.x - particle.radius, particle.y);
+          context.lineTo(particle.x + particle.radius, particle.y);
+          context.moveTo(particle.x, particle.y - particle.radius);
+          context.lineTo(particle.x, particle.y + particle.radius);
+          context.stroke();
+          continue;
+        }
 
         context.beginPath();
         context.fillStyle = `rgba(255,255,255,${particle.alpha})`;

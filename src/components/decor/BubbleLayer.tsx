@@ -42,7 +42,7 @@ export function BubbleLayer({ count = 18, className }: BubbleLayerProps) {
       {bubbles.map((bubble) => (
         <span
           key={bubble.id}
-          className="absolute bottom-[-180px] rounded-full border border-white/55 bg-white/20 backdrop-blur-sm"
+          className="aero-bubble absolute bottom-[-180px] rounded-full"
           style={{
             left: `${bubble.left}%`,
             width: `${bubble.size}px`,

@@ -10,22 +10,22 @@ type FishProps = {
 
 function Fish({ style }: FishProps) {
   return (
-    <svg viewBox="0 0 140 68" fill="none" style={style} className="drop-shadow-[0_6px_14px_rgba(13,112,181,0.22)]">
+    <svg viewBox="0 0 140 68" fill="none" style={style} className="aero-fish">
       <defs>
         <linearGradient id="fishBodyGradient" x1="14" x2="122" y1="18" y2="56" gradientUnits="userSpaceOnUse">
           <stop stopColor="#e5fbff" />
-          <stop offset="0.38" stopColor="#8de8ff" />
-          <stop offset="1" stopColor="#32bdf8" />
+          <stop offset="0.34" stopColor="#9befff" />
+          <stop offset="1" stopColor="#38c2fa" />
         </linearGradient>
       </defs>
       <path
         d="M18 34C18 21 33 12 55 12C79 12 101 22 120 34C101 46 79 56 55 56C33 56 18 47 18 34Z"
         fill="url(#fishBodyGradient)"
       />
-      <path d="M122 34L138 18V50L122 34Z" fill="#2caee8" />
+      <path d="M122 34L138 18V50L122 34Z" fill="#2eb0ea" />
       <circle cx="45" cy="31" r="3.6" fill="#0e5e8f" />
-      <path d="M56 22C71 23 84 29 92 34C84 39 71 45 56 46" stroke="#dff9ff" strokeWidth="2" />
-      <path d="M35 47C43 48 50 47 57 42" stroke="#cbf6ff" strokeWidth="2" strokeLinecap="round" />
+      <path d="M56 22C71 23 84 29 92 34C84 39 71 45 56 46" stroke="#effcff" strokeWidth="2" />
+      <path d="M35 47C43 48 50 47 57 42" stroke="#d7f9ff" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
