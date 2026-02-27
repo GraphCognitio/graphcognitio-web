@@ -6,7 +6,14 @@ import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
-import { createFeedWorld, placeNodeInWorld, resolveFeedNodeDimensions, type FeedWorldNode } from "../canvas/worldPlacement";
+import {
+  createFeedWorld,
+  moveNodeInWorld,
+  placeNodeInWorld,
+  placeNodeInWorldAtTarget,
+  resolveFeedNodeDimensions,
+  type FeedWorldNode,
+} from "../canvas/worldPlacement";
 import { readSeenPostIds, writeSeenPostIds } from "../storage/seenPostsStorage";
 import { FeedNodeCard } from "./FeedNodeCard";
 import type { PostResponse } from "../types/feedTypes";
@@ -34,6 +41,9 @@ const SEEN_MIN_VISIBLE_MS = 250;
 
 type FeedCanvasProps = {
   viewerUserId: string | null;
+  focusPostId?: string | null;
+  focusPostPayload?: PostResponse | null;
+  onFocusHandled?: (postId: string) => void;
 };
 
 function clamp(value: number, min: number, max: number) {
@@ -89,7 +99,12 @@ function nodeIntersectionRatio(
   return visibleArea / totalArea;
 }
 
-export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
+export function FeedCanvas({
+  viewerUserId,
+  focusPostId,
+  focusPostPayload,
+  onFocusHandled,
+}: FeedCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const worldLayerRef = useRef<HTMLDivElement | null>(null);
 
@@ -117,6 +132,9 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
   const seenVisibleSinceRef = useRef<Map<string, number>>(new Map<string, number>());
   const frontOrderRef = useRef<Map<string, number>>(new Map<string, number>());
   const frontCounterRef = useRef(0);
+  const handledFocusPostIdRef = useRef<string | null>(null);
+  const pendingFocusPostIdRef = useRef<string | null>(null);
+  const focusAnchorRef = useRef<{ postId: string; x: number; y: number } | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [worldVersion, setWorldVersion] = useState(0);
@@ -160,6 +178,23 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
       await feedQuery.fetchNextPage();
     };
   }, [feedQuery.fetchNextPage]);
+
+  useEffect(() => {
+    if (!focusPostId) {
+      focusAnchorRef.current = null;
+      return;
+    }
+
+    if (focusAnchorRef.current?.postId === focusPostId) {
+      return;
+    }
+
+    focusAnchorRef.current = {
+      postId: focusPostId,
+      x: cameraRef.current.targetX,
+      y: cameraRef.current.targetY,
+    };
+  }, [focusPostId]);
 
   useEffect(() => {
     let worldChanged = false;
@@ -224,6 +259,100 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
     frontOrderRef.current.set(nodeId, 10_000 + frontCounterRef.current);
     setFrontOrderVersion((current) => current + 1);
   };
+
+  useEffect(() => {
+    if (!focusPostId) {
+      handledFocusPostIdRef.current = null;
+      pendingFocusPostIdRef.current = null;
+      return;
+    }
+
+    if (handledFocusPostIdRef.current === focusPostId && pendingFocusPostIdRef.current !== focusPostId) {
+      return;
+    }
+
+    pendingFocusPostIdRef.current = focusPostId;
+
+    const focusAnchorPosition =
+      focusAnchorRef.current?.postId === focusPostId
+        ? { x: focusAnchorRef.current.x, y: focusAnchorRef.current.y }
+        : {
+            x: cameraRef.current.targetX,
+            y: cameraRef.current.targetY,
+          };
+    focusAnchorRef.current = { postId: focusPostId, x: focusAnchorPosition.x, y: focusAnchorPosition.y };
+
+    let node = worldRef.current.nodesById.get(focusPostId);
+    let worldChanged = false;
+    const isPayloadFocus = Boolean(focusPostPayload && focusPostPayload.id === focusPostId);
+
+    if (!node && isPayloadFocus && focusPostPayload) {
+      node = placeNodeInWorldAtTarget(
+        worldRef.current,
+        focusPostPayload,
+        focusAnchorPosition.x,
+        focusAnchorPosition.y
+      );
+      if (!frontOrderRef.current.has(node.id)) {
+        frontOrderRef.current.set(node.id, node.index);
+      }
+      worldChanged = true;
+    }
+
+    if (!node) {
+      return;
+    }
+
+    if (isPayloadFocus && focusPostPayload) {
+      if (
+        node.post.replyCount !== focusPostPayload.replyCount ||
+        node.post.likeCount !== focusPostPayload.likeCount ||
+        node.post.likedByMe !== focusPostPayload.likedByMe ||
+        node.post.content !== focusPostPayload.content ||
+        node.post.authorName !== focusPostPayload.authorName
+      ) {
+        node.post = focusPostPayload;
+        worldChanged = true;
+      }
+
+      if (node.x !== focusAnchorPosition.x || node.y !== focusAnchorPosition.y) {
+        const movedNode = moveNodeInWorld(
+          worldRef.current,
+          node.id,
+          focusAnchorPosition.x,
+          focusAnchorPosition.y
+        );
+        if (movedNode) {
+          node = movedNode;
+          worldChanged = true;
+        }
+      }
+    }
+
+    if (worldChanged) {
+      setWorldVersion((current) => current + 1);
+    }
+
+    const camera = cameraRef.current;
+    camera.targetX = clampToWorld(node.x);
+    camera.targetY = clampToWorld(node.y);
+    camera.x = camera.targetX;
+    camera.y = camera.targetY;
+    camera.targetZoom = clamp(Math.max(camera.targetZoom, 1), MIN_ZOOM, MAX_ZOOM);
+
+    frontCounterRef.current += 1;
+    frontOrderRef.current.set(node.id, 10_000 + frontCounterRef.current);
+    setFrontOrderVersion((current) => current + 1);
+    setSearchTerm((current) => (current ? "" : current));
+
+    if (isPayloadFocus) {
+      pendingFocusPostIdRef.current = null;
+      handledFocusPostIdRef.current = focusPostId;
+      window.requestAnimationFrame(() => {
+        onFocusHandled?.(focusPostId);
+      });
+    }
+  }, [focusPostId, focusPostPayload, worldVersion]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -349,6 +478,19 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
 
       worldLayer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${camera.zoom})`;
 
+      const pendingFocusPostId = pendingFocusPostIdRef.current;
+      if (pendingFocusPostId) {
+        const focusedNode = worldRef.current.nodesById.get(pendingFocusPostId);
+        if (focusedNode) {
+          const focusVisibilityRatio = nodeIntersectionRatio(cameraToViewport(camera), focusedNode);
+          if (focusVisibilityRatio >= 0.52) {
+            pendingFocusPostIdRef.current = null;
+            handledFocusPostIdRef.current = pendingFocusPostId;
+            onFocusHandled?.(pendingFocusPostId);
+          }
+        }
+      }
+
       updateLoadMoreByEdge(timestamp);
       updateSeenByViewport(timestamp);
       animationFrameId = window.requestAnimationFrame(frame);
@@ -362,10 +504,55 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", updateCameraDimensions);
     };
-  }, [viewerUserId, worldVersion]);
+  }, [onFocusHandled, viewerUserId, worldVersion]);
 
   return (
-    <section className="aero-glass relative min-h-[66vh] overflow-hidden p-0">
+    <section className="aero-glass aero-feed-canvas relative overflow-hidden p-0">
+      <div className="aero-feed-canvas-bg" aria-hidden="true">
+        <div className="aero-feed-canvas-rays" />
+        <div className="aero-feed-canvas-grid" />
+        <div className="aero-feed-canvas-lime-islands" />
+        <span className="aero-feed-canvas-orb aero-feed-canvas-orb--a" />
+        <span className="aero-feed-canvas-orb aero-feed-canvas-orb--b" />
+        <span className="aero-feed-canvas-orb aero-feed-canvas-orb--c" />
+        <span className="aero-sparkle-cross aero-sparkle-cross--feed" style={{ left: "18%", top: "16%", width: "18px", height: "18px" }} />
+        <span className="aero-sparkle-cross aero-sparkle-cross--feed" style={{ left: "62%", top: "23%", width: "14px", height: "14px" }} />
+        <span className="aero-sparkle-cross aero-sparkle-cross--feed" style={{ left: "76%", top: "48%", width: "20px", height: "20px" }} />
+        <span className="aero-sparkle-cross aero-sparkle-cross--feed" style={{ left: "31%", top: "72%", width: "12px", height: "12px" }} />
+        <span className="aero-sparkle-cross aero-sparkle-cross--feed" style={{ left: "84%", top: "18%", width: "10px", height: "10px" }} />
+        <svg viewBox="0 0 140 68" fill="none" className="aero-feed-canvas-fish aero-feed-canvas-fish--left">
+          <defs>
+            <linearGradient id="feedCanvasFishGradientA" x1="14" x2="122" y1="18" y2="56" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#ecfcff" />
+              <stop offset="0.38" stopColor="#aef1ff" />
+              <stop offset="1" stopColor="#34baf2" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M18 34C18 21 33 12 55 12C79 12 101 22 120 34C101 46 79 56 55 56C33 56 18 47 18 34Z"
+            fill="url(#feedCanvasFishGradientA)"
+          />
+          <path d="M122 34L138 18V50L122 34Z" fill="#2daee7" />
+          <circle cx="45" cy="31" r="3.5" fill="#0d5b88" />
+          <path d="M56 22C71 23 84 29 92 34C84 39 71 45 56 46" stroke="#effcff" strokeWidth="2" />
+        </svg>
+        <svg viewBox="0 0 140 68" fill="none" className="aero-feed-canvas-fish aero-feed-canvas-fish--right">
+          <defs>
+            <linearGradient id="feedCanvasFishGradientB" x1="14" x2="122" y1="18" y2="56" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#e6fbff" />
+              <stop offset="0.4" stopColor="#98ecff" />
+              <stop offset="1" stopColor="#30b1eb" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M18 34C18 21 33 12 55 12C79 12 101 22 120 34C101 46 79 56 55 56C33 56 18 47 18 34Z"
+            fill="url(#feedCanvasFishGradientB)"
+          />
+          <path d="M122 34L138 18V50L122 34Z" fill="#269fd9" />
+          <circle cx="45" cy="31" r="3.5" fill="#0d5b88" />
+          <path d="M56 22C71 23 84 29 92 34C84 39 71 45 56 46" stroke="#effcff" strokeWidth="2" />
+        </svg>
+      </div>
       <div
         ref={containerRef}
         className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"

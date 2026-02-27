@@ -65,7 +65,7 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
 
   return (
     <article
-      className={`aero-glass aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition ${
+      className={`aero-glass aero-feed-node aero-float aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition ${
         seen ? "border-emerald-200/80 bg-emerald-50/25" : ""
       }`}
       style={{
