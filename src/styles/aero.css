@@ -174,6 +174,31 @@
     var(--aero-bg-gradient);
 }
 
+.aero-scene-wallpaper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(140px, 22vh, 280px);
+  pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(187, 236, 255, 0) 0%, rgba(128, 218, 104, 0.1) 44%, rgba(17, 102, 54, 0.25) 100%),
+    url("../assets/gramaverde-strip.png");
+  background-size:
+    100% 100%,
+    auto 100%;
+  background-position:
+    center bottom,
+    left bottom;
+  background-repeat:
+    no-repeat,
+    repeat-x;
+  opacity: 0.96;
+  mix-blend-mode: normal;
+  filter: saturate(1.2) contrast(1.06);
+  z-index: 2;
+}
+
 .aero-page::before {
   content: "";
   position: absolute;

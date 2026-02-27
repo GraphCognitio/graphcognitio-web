@@ -16,6 +16,7 @@ export function AeroScene({ className, contentClassName, children }: AeroScenePr
 
   return (
     <main className={`aero-page ${className ?? ""}`}>
+      <div className="aero-scene-wallpaper" />
       <div className="aero-wave-lines" />
       <div className="aero-lime-islands" />
       <OrbLayer className="opacity-100" />
