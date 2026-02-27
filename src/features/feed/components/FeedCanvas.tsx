@@ -5,7 +5,7 @@ import { getFeedPage } from "../../../api/feedApi";
 import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
-import { createFeedWorld, placeNodeInWorld, type FeedWorldNode } from "../canvas/worldPlacement";
+import { createFeedWorld, placeNodeInWorld } from "../canvas/worldPlacement";
 import { FeedInspectorPanel } from "./FeedInspectorPanel";
 import { FeedNodeCard } from "./FeedNodeCard";
 import type { PostResponse } from "../types/feedTypes";
@@ -27,8 +27,7 @@ type CameraState = {
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
 const FEED_LIMIT = 20;
-const BUFFER = 260;
-const HARD_CAP = 220;
+const WORLD_HALF_EXTENT = 12_000;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -54,43 +53,8 @@ function cameraToViewport(camera: CameraState) {
   };
 }
 
-function distanceSquared(x1: number, y1: number, x2: number, y2: number) {
-  const dx = x1 - x2;
-  const dy = y1 - y2;
-  return dx * dx + dy * dy;
-}
-
-function preferredVisibleLimit(zoom: number) {
-  if (zoom < 0.75) {
-    return 120;
-  }
-  if (zoom < 1.2) {
-    return 160;
-  }
-  return 180;
-}
-
-function intersectsViewport(node: FeedWorldNode, viewport: { left: number; right: number; top: number; bottom: number }) {
-  const left = node.x - node.width / 2;
-  const right = node.x + node.width / 2;
-  const top = node.y - node.height / 2;
-  const bottom = node.y + node.height / 2;
-
-  return left <= viewport.right && right >= viewport.left && top <= viewport.bottom && bottom >= viewport.top;
-}
-
-function sameNodeSet(previous: FeedWorldNode[], next: FeedWorldNode[]) {
-  if (previous.length !== next.length) {
-    return false;
-  }
-
-  for (let index = 0; index < previous.length; index += 1) {
-    if (previous[index].id !== next[index].id) {
-      return false;
-    }
-  }
-
-  return true;
+function clampToWorld(value: number) {
+  return clamp(value, -WORLD_HALF_EXTENT, WORLD_HALF_EXTENT);
 }
 
 export function FeedCanvas() {
@@ -118,7 +82,6 @@ export function FeedCanvas() {
   const lastLoadAttemptRef = useRef(0);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleNodes, setVisibleNodes] = useState<FeedWorldNode[]>([]);
   const [worldVersion, setWorldVersion] = useState(0);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
@@ -174,19 +137,23 @@ export function FeedCanvas() {
     }
   }, [dedupedPosts]);
 
+  const allNodes = useMemo(() => {
+    return Array.from(worldRef.current.nodesById.values()).sort((nodeA, nodeB) => nodeA.index - nodeB.index);
+  }, [worldVersion]);
+
   const filteredVisibleNodes = useMemo(() => {
     const needle = searchTerm.trim().toLowerCase();
     if (!needle) {
-      return visibleNodes;
+      return allNodes;
     }
 
-    return visibleNodes.filter((node) => {
+    return allNodes.filter((node) => {
       return (
         node.post.authorName.toLowerCase().includes(needle) ||
         node.post.content.toLowerCase().includes(needle)
       );
     });
-  }, [searchTerm, visibleNodes]);
+  }, [allNodes, searchTerm]);
 
   const activeNode = activeNodeId ? worldRef.current.nodesById.get(activeNodeId) ?? null : null;
 
@@ -198,7 +165,7 @@ export function FeedCanvas() {
     }
 
     let animationFrameId = 0;
-    let lastVisibilitySample = 0;
+    let lastEdgeCheckSample = 0;
 
     const updateCameraDimensions = () => {
       const rect = container.getBoundingClientRect();
@@ -206,8 +173,8 @@ export function FeedCanvas() {
       cameraRef.current.height = rect.height;
     };
 
-    const updateVisibleNodes = (now: number) => {
-      if (now - lastVisibilitySample < 80) {
+    const updateLoadMoreByEdge = (now: number) => {
+      if (now - lastEdgeCheckSample < 120) {
         return;
       }
 
@@ -216,38 +183,8 @@ export function FeedCanvas() {
         return;
       }
 
-      lastVisibilitySample = now;
+      lastEdgeCheckSample = now;
       const viewport = cameraToViewport(camera);
-      const expandedViewport = {
-        left: viewport.left - BUFFER,
-        right: viewport.right + BUFFER,
-        top: viewport.top - BUFFER,
-        bottom: viewport.bottom + BUFFER,
-      };
-
-      const candidates = Array.from(worldRef.current.nodesById.values()).filter((node) => {
-        return intersectsViewport(node, expandedViewport);
-      });
-
-      const softLimit = preferredVisibleLimit(camera.zoom);
-      const maxVisible = Math.min(HARD_CAP, softLimit);
-      const prioritized =
-        candidates.length > maxVisible
-          ? [...candidates].sort((nodeA, nodeB) => {
-              return (
-                distanceSquared(nodeA.x, nodeA.y, camera.x, camera.y) -
-                distanceSquared(nodeB.x, nodeB.y, camera.x, camera.y)
-              );
-            })
-          : candidates;
-      const nextVisible = prioritized.slice(0, maxVisible).sort((nodeA, nodeB) => nodeA.index - nodeB.index);
-
-      setVisibleNodes((previous) => {
-        if (sameNodeSet(previous, nextVisible)) {
-          return previous;
-        }
-        return nextVisible;
-      });
 
       const bounds = worldRef.current.bounds;
       const threshold = Math.max(220, (camera.width / camera.zoom) * 0.22);
@@ -273,8 +210,10 @@ export function FeedCanvas() {
     const frame = (timestamp: number) => {
       const camera = cameraRef.current;
 
-      camera.x = camera.targetX;
-      camera.y = camera.targetY;
+      camera.targetX = clampToWorld(camera.targetX);
+      camera.targetY = clampToWorld(camera.targetY);
+      camera.x = clampToWorld(camera.targetX);
+      camera.y = clampToWorld(camera.targetY);
       camera.zoom += (camera.targetZoom - camera.zoom) * 0.2;
 
       if (Math.abs(camera.targetZoom - camera.zoom) < 0.001) {
@@ -286,7 +225,7 @@ export function FeedCanvas() {
 
       worldLayer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${camera.zoom})`;
 
-      updateVisibleNodes(timestamp);
+      updateLoadMoreByEdge(timestamp);
       animationFrameId = window.requestAnimationFrame(frame);
     };
 
@@ -331,6 +270,8 @@ export function FeedCanvas() {
 
           camera.targetX -= deltaX / camera.targetZoom;
           camera.targetY -= deltaY / camera.targetZoom;
+          camera.targetX = clampToWorld(camera.targetX);
+          camera.targetY = clampToWorld(camera.targetY);
         }}
         onPointerUp={(event) => {
           if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -358,6 +299,8 @@ export function FeedCanvas() {
           camera.targetZoom = nextZoom;
           camera.targetX = worldXBefore - (cursorX - camera.width / 2) / nextZoom;
           camera.targetY = worldYBefore - (cursorY - camera.height / 2) / nextZoom;
+          camera.targetX = clampToWorld(camera.targetX);
+          camera.targetY = clampToWorld(camera.targetY);
         }}
       >
         <div ref={worldLayerRef} className="absolute left-0 top-0 will-change-transform" style={{ transformOrigin: "0 0" }}>
