@@ -26,6 +26,12 @@ Variável obrigatória:
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
+Observações:
+
+- `VITE_API_BASE_URL` é configuração pública de frontend e será embutida no bundle
+- nunca coloque secrets, tokens privados ou credenciais em variáveis `VITE_*`
+- para deploy, gere o build com a URL pública correta da API
+
 ## Scripts
 
 ```bash
@@ -143,4 +149,3 @@ Sugestão de capturas para documentação do portfólio:
 - Feed canvas em zoom 1.0
 - Feed canvas com pan + painel lateral aberto
 - Graph view com side panel e ação Expand
-
