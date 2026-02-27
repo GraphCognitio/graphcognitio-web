@@ -2,23 +2,16 @@ import { type InfiniteData, useMutation, useQueryClient } from "@tanstack/react-
 import { Eye, Heart, Network, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { likePost, unlikePost } from "../../../api/postApi";
-import type { FeedWorldNode } from "../canvas/worldPlacement";
+import { resolveFeedNodeDimensions, type FeedWorldNode } from "../canvas/worldPlacement";
 import type { FeedResponse, PostResponse } from "../types/feedTypes";
 import { formatRelativeTime } from "../utils/relativeTime";
 
 type FeedNodeCardProps = {
   node: FeedWorldNode;
-  onInspect: (id: string) => void;
+  onBringToFront: (id: string) => void;
+  seen: boolean;
+  zIndex: number;
 };
-
-function dimensionsByReplies(baseWidth: number, baseHeight: number, replyCount: number) {
-  const normalizedReplies = Math.max(0, replyCount);
-  const growth = Math.min(120, Math.round(Math.sqrt(normalizedReplies) * 14));
-  return {
-    width: baseWidth + growth,
-    height: baseHeight + Math.round(growth * 0.62),
-  };
-}
 
 function previewContent(content: string) {
   if (content.length <= 170) {
@@ -27,9 +20,9 @@ function previewContent(content: string) {
   return `${content.slice(0, 170)}...`;
 }
 
-export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
+export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCardProps) {
   const { post } = node;
-  const { width, height } = dimensionsByReplies(node.width, node.height, post.replyCount);
+  const { width, height } = resolveFeedNodeDimensions(node.width, node.height, post.replyCount);
   const queryClient = useQueryClient();
 
   const updateFeedCache = (updatedPost: PostResponse) => {
@@ -71,21 +64,25 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
 
   return (
     <article
-      className="aero-glass aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition"
+      className={`aero-glass aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition ${
+        seen ? "border-emerald-200/80 bg-emerald-50/25" : ""
+      }`}
       style={{
         width: `${width}px`,
         height: `${height}px`,
         left: `${node.x - width / 2}px`,
         top: `${node.y - height / 2}px`,
+        zIndex,
       }}
+      data-feed-node-card="true"
       aria-label={`Post by ${post.authorName}`}
       role="button"
       tabIndex={0}
-      onClick={() => onInspect(node.id)}
+      onClick={() => onBringToFront(node.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onInspect(node.id);
+          onBringToFront(node.id);
         }
       }}
     >
@@ -102,10 +99,17 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
           <p className="text-sm font-bold text-sky-900">{post.authorName}</p>
           <p className="text-xs text-sky-900/70">{formatRelativeTime(post.createdAt)}</p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/40 px-2 py-1 text-[11px] font-semibold text-sky-900/90">
-          <Sparkles aria-hidden="true" size={12} />
-          {post.replyCount} replies
-        </span>
+        <div className="flex items-center gap-1">
+          {seen ? (
+            <span className="inline-flex items-center rounded-full border border-emerald-200/90 bg-emerald-100/70 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700">
+              Seen
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/40 px-2 py-1 text-[11px] font-semibold text-sky-900/90">
+            <Sparkles aria-hidden="true" size={12} />
+            {post.replyCount} replies
+          </span>
+        </div>
       </header>
 
       <p className="relative z-10 mb-4 line-clamp-4 flex-1 text-sm font-medium text-sky-950/95">

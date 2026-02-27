@@ -36,6 +36,15 @@ export type FeedWorld = {
   bounds: WorldBounds;
 };
 
+export function resolveFeedNodeDimensions(baseWidth: number, baseHeight: number, replyCount: number) {
+  const normalizedReplies = Math.max(0, replyCount);
+  const growth = Math.min(FEED_NODE_MAX_GROWTH, Math.round(Math.sqrt(normalizedReplies) * 14));
+  return {
+    width: baseWidth + growth,
+    height: baseHeight + Math.round(growth * 0.62),
+  };
+}
+
 export function createFeedWorld(): FeedWorld {
   return {
     nodesById: new Map(),

@@ -88,7 +88,7 @@ export function FeedPage() {
         </div>
       ) : null}
 
-      <FeedCanvas />
+      <FeedCanvas viewerUserId={user?.id ?? null} />
 
       <AeroModal
         title="Create root post"
