@@ -71,7 +71,7 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
 
   return (
     <article
-      className="aero-glass aero-focus-ring absolute overflow-hidden p-4 transition"
+      className="aero-glass aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition"
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -108,12 +108,14 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
         </span>
       </header>
 
-      <p className="relative z-10 mb-4 line-clamp-4 text-sm font-medium text-sky-950/95">{previewContent(post.content)}</p>
+      <p className="relative z-10 mb-4 line-clamp-4 flex-1 text-sm font-medium text-sky-950/95">
+        {previewContent(post.content)}
+      </p>
 
-      <footer className="relative z-10 mt-auto flex items-center gap-2">
+      <footer className="relative z-10 mt-auto flex flex-nowrap items-center gap-2">
         <button
           aria-label={post.likedByMe ? `Unlike post ${post.id}` : `Like post ${post.id}`}
-          className={`aero-focus-ring inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold hover:bg-white/55 disabled:cursor-not-allowed disabled:opacity-70 ${
+          className={`aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold hover:bg-white/55 disabled:cursor-not-allowed disabled:opacity-70 ${
             post.likedByMe
               ? "border-rose-200/85 bg-rose-100/55 text-rose-600"
               : "border-white/70 bg-white/40 text-sky-900"
@@ -135,7 +137,7 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
         </button>
         <Link
           aria-label={`Open post ${post.id}`}
-          className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
+          className="aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
           to={`/post/${post.id}`}
           onClick={(event) => event.stopPropagation()}
         >
@@ -144,7 +146,7 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
         </Link>
         <Link
           aria-label={`Open graph for root ${post.rootId}`}
-          className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
+          className="aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
           to={`/graph/${post.rootId}`}
           onClick={(event) => event.stopPropagation()}
         >

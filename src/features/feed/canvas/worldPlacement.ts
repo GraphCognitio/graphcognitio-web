@@ -2,6 +2,10 @@ import type { PostResponse } from "../types/feedTypes";
 
 export const FEED_NODE_WIDTH = 320;
 export const FEED_NODE_HEIGHT = 216;
+export const FEED_NODE_MAX_GROWTH = 120;
+export const FEED_NODE_MAX_HEIGHT_GROWTH = Math.round(FEED_NODE_MAX_GROWTH * 0.62);
+export const FEED_NODE_OCCUPANCY_WIDTH = FEED_NODE_WIDTH + FEED_NODE_MAX_GROWTH;
+export const FEED_NODE_OCCUPANCY_HEIGHT = FEED_NODE_HEIGHT + FEED_NODE_MAX_HEIGHT_GROWTH;
 
 const CELL_SIZE = 72;
 const GOLDEN_ANGLE = 2.399963229728653;
@@ -175,10 +179,28 @@ export function placeNodeInWorld(world: FeedWorld, post: PostResponse) {
   const desiredX = target.x + jitterX;
   const desiredY = target.y + jitterY;
 
-  const placement = findPlacement(world, desiredX, desiredY, FEED_NODE_WIDTH, FEED_NODE_HEIGHT);
+  const placement = findPlacement(
+    world,
+    desiredX,
+    desiredY,
+    FEED_NODE_OCCUPANCY_WIDTH,
+    FEED_NODE_OCCUPANCY_HEIGHT
+  );
 
-  occupyCells(world, placement.x, placement.y, FEED_NODE_WIDTH, FEED_NODE_HEIGHT);
-  updateBounds(world, placement.x, placement.y, FEED_NODE_WIDTH, FEED_NODE_HEIGHT);
+  occupyCells(
+    world,
+    placement.x,
+    placement.y,
+    FEED_NODE_OCCUPANCY_WIDTH,
+    FEED_NODE_OCCUPANCY_HEIGHT
+  );
+  updateBounds(
+    world,
+    placement.x,
+    placement.y,
+    FEED_NODE_OCCUPANCY_WIDTH,
+    FEED_NODE_OCCUPANCY_HEIGHT
+  );
 
   const node: FeedWorldNode = {
     id: post.id,
