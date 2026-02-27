@@ -5,8 +5,8 @@ import { getFeedPage } from "../../../api/feedApi";
 import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
-import { createFeedWorld, placeNodeInWorld } from "../canvas/worldPlacement";
-import { FeedInspectorPanel } from "./FeedInspectorPanel";
+import { createFeedWorld, placeNodeInWorld, resolveFeedNodeDimensions, type FeedWorldNode } from "../canvas/worldPlacement";
+import { readSeenPostIds, writeSeenPostIds } from "../storage/seenPostsStorage";
 import { FeedNodeCard } from "./FeedNodeCard";
 import type { PostResponse } from "../types/feedTypes";
 
@@ -28,6 +28,12 @@ const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
 const FEED_LIMIT = 20;
 const WORLD_HALF_EXTENT = 12_000;
+const SEEN_INTERSECTION_RATIO = 0.35;
+const SEEN_MIN_VISIBLE_MS = 250;
+
+type FeedCanvasProps = {
+  viewerUserId: string | null;
+};
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -38,7 +44,7 @@ function isInteractiveTarget(target: EventTarget | null) {
     return false;
   }
 
-  return Boolean(target.closest("a,button,input,textarea,select,label"));
+  return Boolean(target.closest("a,button,input,textarea,select,label,[data-feed-node-card='true']"));
 }
 
 function cameraToViewport(camera: CameraState) {
@@ -57,7 +63,32 @@ function clampToWorld(value: number) {
   return clamp(value, -WORLD_HALF_EXTENT, WORLD_HALF_EXTENT);
 }
 
-export function FeedCanvas() {
+function nodeIntersectionRatio(
+  viewport: ReturnType<typeof cameraToViewport>,
+  node: FeedWorldNode
+) {
+  const { width, height } = resolveFeedNodeDimensions(node.width, node.height, node.post.replyCount);
+  const nodeLeft = node.x - width / 2;
+  const nodeRight = node.x + width / 2;
+  const nodeTop = node.y - height / 2;
+  const nodeBottom = node.y + height / 2;
+
+  const intersectionWidth = Math.max(0, Math.min(viewport.right, nodeRight) - Math.max(viewport.left, nodeLeft));
+  const intersectionHeight = Math.max(0, Math.min(viewport.bottom, nodeBottom) - Math.max(viewport.top, nodeTop));
+  if (!intersectionWidth || !intersectionHeight) {
+    return 0;
+  }
+
+  const visibleArea = intersectionWidth * intersectionHeight;
+  const totalArea = width * height;
+  if (!totalArea) {
+    return 0;
+  }
+
+  return visibleArea / totalArea;
+}
+
+export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const worldLayerRef = useRef<HTMLDivElement | null>(null);
 
@@ -80,10 +111,16 @@ export function FeedCanvas() {
   const isFetchingNextPageRef = useRef(false);
   const fetchNextPageRef = useRef<(() => Promise<unknown>) | null>(null);
   const lastLoadAttemptRef = useRef(0);
+  const filteredNodesRef = useRef<FeedWorldNode[]>([]);
+  const seenPostIdsRef = useRef<Set<string>>(new Set<string>());
+  const seenVisibleSinceRef = useRef<Map<string, number>>(new Map<string, number>());
+  const frontOrderRef = useRef<Map<string, number>>(new Map<string, number>());
+  const frontCounterRef = useRef(0);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [worldVersion, setWorldVersion] = useState(0);
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [, setSeenVersion] = useState(0);
+  const [, setFrontOrderVersion] = useState(0);
 
   const feedQuery = useInfiniteQuery({
     queryKey: ["feed", "root-posts"],
@@ -128,7 +165,10 @@ export function FeedCanvas() {
     for (const post of dedupedPosts) {
       const existing = worldRef.current.nodesById.get(post.id);
       if (!existing) {
-        placeNodeInWorld(worldRef.current, post);
+        const placedNode = placeNodeInWorld(worldRef.current, post);
+        if (!frontOrderRef.current.has(placedNode.id)) {
+          frontOrderRef.current.set(placedNode.id, placedNode.index);
+        }
         worldChanged = true;
         continue;
       }
@@ -168,7 +208,21 @@ export function FeedCanvas() {
     });
   }, [allNodes, searchTerm]);
 
-  const activeNode = activeNodeId ? worldRef.current.nodesById.get(activeNodeId) ?? null : null;
+  useEffect(() => {
+    filteredNodesRef.current = filteredVisibleNodes;
+  }, [filteredVisibleNodes]);
+
+  useEffect(() => {
+    seenVisibleSinceRef.current.clear();
+    seenPostIdsRef.current = readSeenPostIds(viewerUserId);
+    setSeenVersion((current) => current + 1);
+  }, [viewerUserId]);
+
+  const bringNodeToFront = (nodeId: string) => {
+    frontCounterRef.current += 1;
+    frontOrderRef.current.set(nodeId, 10_000 + frontCounterRef.current);
+    setFrontOrderVersion((current) => current + 1);
+  };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -220,6 +274,62 @@ export function FeedCanvas() {
       }
     };
 
+    const updateSeenByViewport = (now: number) => {
+      if (!viewerUserId) {
+        return;
+      }
+
+      const camera = cameraRef.current;
+      if (!camera.width || !camera.height) {
+        return;
+      }
+
+      const viewport = cameraToViewport(camera);
+      const currentVisibleNodes = filteredNodesRef.current;
+      const seenPostIds = seenPostIdsRef.current;
+      const seenVisibleSince = seenVisibleSinceRef.current;
+      const currentVisibleNodeIds = new Set(currentVisibleNodes.map((node) => node.id));
+      let hasNewSeenPosts = false;
+
+      for (const [nodeId] of seenVisibleSince) {
+        if (!currentVisibleNodeIds.has(nodeId)) {
+          seenVisibleSince.delete(nodeId);
+        }
+      }
+
+      for (const node of currentVisibleNodes) {
+        if (seenPostIds.has(node.id)) {
+          seenVisibleSince.delete(node.id);
+          continue;
+        }
+
+        const intersectionRatio = nodeIntersectionRatio(viewport, node);
+        if (intersectionRatio >= SEEN_INTERSECTION_RATIO) {
+          const firstVisibleAt = seenVisibleSince.get(node.id);
+          if (firstVisibleAt === undefined) {
+            seenVisibleSince.set(node.id, now);
+            continue;
+          }
+
+          if (now - firstVisibleAt >= SEEN_MIN_VISIBLE_MS) {
+            seenPostIds.add(node.id);
+            seenVisibleSince.delete(node.id);
+            hasNewSeenPosts = true;
+          }
+          continue;
+        }
+
+        seenVisibleSince.delete(node.id);
+      }
+
+      if (!hasNewSeenPosts) {
+        return;
+      }
+
+      writeSeenPostIds(viewerUserId, seenPostIds);
+      setSeenVersion((current) => current + 1);
+    };
+
     const frame = (timestamp: number) => {
       const camera = cameraRef.current;
 
@@ -239,6 +349,7 @@ export function FeedCanvas() {
       worldLayer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${camera.zoom})`;
 
       updateLoadMoreByEdge(timestamp);
+      updateSeenByViewport(timestamp);
       animationFrameId = window.requestAnimationFrame(frame);
     };
 
@@ -250,7 +361,7 @@ export function FeedCanvas() {
       window.cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", updateCameraDimensions);
     };
-  }, [worldVersion]);
+  }, [viewerUserId, worldVersion]);
 
   return (
     <section className="aero-glass relative min-h-[66vh] overflow-hidden p-0">
@@ -258,17 +369,29 @@ export function FeedCanvas() {
         ref={containerRef}
         className="absolute inset-0 touch-none cursor-grab active:cursor-grabbing"
         onPointerDown={(event) => {
-          if (event.button !== 0) {
+          const isPrimaryButton = event.button === 0;
+          const isMiddleButton = event.button === 1;
+          if (!isPrimaryButton && !isMiddleButton) {
             return;
           }
-          if (isInteractiveTarget(event.target)) {
+          if (isPrimaryButton && isInteractiveTarget(event.target)) {
             return;
+          }
+
+          if (isMiddleButton) {
+            // Avoid browser middle-click behaviors (autoscroll/open tab) and force canvas pan.
+            event.preventDefault();
           }
 
           event.currentTarget.setPointerCapture(event.pointerId);
           cameraRef.current.dragActive = true;
           cameraRef.current.dragLastX = event.clientX;
           cameraRef.current.dragLastY = event.clientY;
+        }}
+        onAuxClick={(event) => {
+          if (event.button === 1) {
+            event.preventDefault();
+          }
         }}
         onPointerMove={(event) => {
           const camera = cameraRef.current;
@@ -318,7 +441,13 @@ export function FeedCanvas() {
       >
         <div ref={worldLayerRef} className="absolute left-0 top-0 will-change-transform" style={{ transformOrigin: "0 0" }}>
           {filteredVisibleNodes.map((node) => (
-            <FeedNodeCard key={node.id} node={node} onInspect={setActiveNodeId} />
+            <FeedNodeCard
+              key={node.id}
+              node={node}
+              onBringToFront={bringNodeToFront}
+              seen={seenPostIdsRef.current.has(node.id)}
+              zIndex={frontOrderRef.current.get(node.id) ?? node.index}
+            />
           ))}
         </div>
       </div>
@@ -360,6 +489,7 @@ export function FeedCanvas() {
         <div className="aero-glass pointer-events-auto inline-flex w-fit items-center gap-2 px-3 py-2 text-xs font-semibold text-sky-900/90">
           <span>Loaded nodes: {worldRef.current.nodesById.size}</span>
           <span>Visible: {filteredVisibleNodes.length}</span>
+          <span>Seen: {seenPostIdsRef.current.size}</span>
           {feedQuery.hasNextPage ? <span>More available</span> : <span>End reached</span>}
         </div>
 
@@ -369,8 +499,6 @@ export function FeedCanvas() {
           </div>
         ) : null}
       </div>
-
-      <FeedInspectorPanel node={activeNode} onClose={() => setActiveNodeId(null)} />
 
       {feedQuery.isLoading ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-sky-900/12 backdrop-blur-[2px]">
