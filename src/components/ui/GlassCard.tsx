@@ -5,5 +5,5 @@ type GlassCardProps = PropsWithChildren<{
 }>;
 
 export function GlassCard({ children, className }: GlassCardProps) {
-  return <section className={`aero-glass aero-float p-5 ${className ?? ""}`}>{children}</section>;
+  return <section className={`aero-panel aero-float p-5 ${className ?? ""}`}>{children}</section>;
 }
