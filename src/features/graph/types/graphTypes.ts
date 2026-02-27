@@ -23,8 +23,14 @@ export type ConversationGraphResponse = {
 };
 
 export type ConversationFlowNodeData = {
+  id: string;
   authorName: string;
   contentPreview: string;
   createdAt: string;
   replyCount: number;
+  likeCount: number;
+  likedByMe: boolean;
+  isRoot: boolean;
+  likePending: boolean;
+  onToggleLike: (postId: string, currentlyLikedByMe: boolean) => void;
 };
