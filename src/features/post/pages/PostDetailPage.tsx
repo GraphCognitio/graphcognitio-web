@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
@@ -104,7 +105,7 @@ export function PostDetailPage() {
       <div className="mx-auto mt-6 max-w-5xl">
         <button
           aria-label="Back to feed"
-          className="aero-focus-ring mb-3 inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+          className="aero-pill aero-focus-ring mb-3 inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
           onClick={() => {
             if (window.history.length > 1) {
               navigate(-1);
@@ -114,7 +115,9 @@ export function PostDetailPage() {
           }}
           type="button"
         >
-          <ArrowLeft aria-hidden="true" size={12} />
+          <AeroIconBadge className="h-4 w-4" tone="violet">
+            <ArrowLeft aria-hidden="true" size={9} />
+          </AeroIconBadge>
           Back to feed
         </button>
       </div>
@@ -149,20 +152,18 @@ export function PostDetailPage() {
                 </span>
                 <button
                   aria-label={post.likedByMe ? "Unlike post" : "Like post"}
-                  className={`aero-focus-ring inline-flex items-center gap-1 rounded-full border px-4 py-2 text-xs font-semibold ${
+                  className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${
                     post.likedByMe
-                      ? "border-rose-200/85 bg-rose-100/55 text-rose-600"
-                      : "border-white/70 bg-white/45 text-sky-900"
+                      ? "text-rose-600"
+                      : "text-sky-900"
                   }`}
                   disabled={likeMutation.isPending}
                   onClick={() => likeMutation.mutate()}
                   type="button"
                 >
-                  <Heart
-                    aria-hidden="true"
-                    size={12}
-                    fill={post.likedByMe ? "currentColor" : "none"}
-                  />
+                  <AeroIconBadge className="h-4 w-4" tone={post.likedByMe ? "rose" : "cyan"}>
+                    <Heart aria-hidden="true" size={9} fill={post.likedByMe ? "currentColor" : "none"} />
+                  </AeroIconBadge>
                   {post.likeCount}
                 </button>
                 {canOpenGraph ? (
@@ -170,7 +171,9 @@ export function PostDetailPage() {
                     className="aero-gel aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs"
                     to={`/graph/${post.rootId}`}
                   >
-                    <Network aria-hidden="true" size={12} />
+                    <AeroIconBadge className="h-4 w-4" tone="violet">
+                      <Network aria-hidden="true" size={9} />
+                    </AeroIconBadge>
                     Open graph
                   </Link>
                 ) : null}
@@ -181,7 +184,9 @@ export function PostDetailPage() {
 
         <GlassCard>
           <header className="mb-3 flex items-center gap-2">
-            <Reply aria-hidden="true" className="text-sky-900" size={16} />
+            <AeroIconBadge className="h-5 w-5" tone="cyan">
+              <Reply aria-hidden="true" size={11} />
+            </AeroIconBadge>
             <h2 className="aero-heading text-lg font-black">Reply</h2>
           </header>
 
@@ -213,7 +218,7 @@ export function PostDetailPage() {
               <div className="flex items-center gap-2">
                 {parentPostId ? (
                   <button
-                    className="aero-focus-ring rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+                    className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
                     disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
                     onClick={() => {
                       replyMutation.mutate({ postId: parentPostId, content: replyContent.trim() });
@@ -232,7 +237,9 @@ export function PostDetailPage() {
                   {replyMutation.isPending ? (
                     <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
                   ) : (
-                    <SendHorizontal aria-hidden="true" size={14} />
+                    <AeroIconBadge className="h-4 w-4" tone="cyan">
+                      <SendHorizontal aria-hidden="true" size={9} />
+                    </AeroIconBadge>
                   )}
                   Send
                 </GelButton>

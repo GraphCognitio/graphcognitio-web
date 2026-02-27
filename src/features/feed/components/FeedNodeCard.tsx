@@ -2,6 +2,7 @@ import { type InfiniteData, useMutation, useQueryClient } from "@tanstack/react-
 import { Eye, Heart, Network, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { likePost, unlikePost } from "../../../api/postApi";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { resolveFeedNodeDimensions, type FeedWorldNode } from "../canvas/worldPlacement";
 import type { FeedResponse, PostResponse } from "../types/feedTypes";
 import { formatRelativeTime } from "../utils/relativeTime";
@@ -106,7 +107,9 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
             </span>
           ) : null}
           <span className="inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/40 px-2 py-1 text-[11px] font-semibold text-sky-900/90">
-            <Sparkles aria-hidden="true" size={12} />
+            <AeroIconBadge className="h-4 w-4" tone="cyan">
+              <Sparkles aria-hidden="true" size={9} />
+            </AeroIconBadge>
             {post.replyCount} replies
           </span>
         </div>
@@ -119,10 +122,10 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
       <footer className="relative z-10 mt-auto flex flex-nowrap items-center gap-2">
         <button
           aria-label={post.likedByMe ? `Unlike post ${post.id}` : `Like post ${post.id}`}
-          className={`aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold hover:bg-white/55 disabled:cursor-not-allowed disabled:opacity-70 ${
+          className={`aero-pill aero-focus-ring inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-70 ${
             post.likedByMe
-              ? "border-rose-200/85 bg-rose-100/55 text-rose-600"
-              : "border-white/70 bg-white/40 text-sky-900"
+              ? "text-rose-600"
+              : "text-sky-900"
           }`}
           disabled={likeMutation.isPending}
           onClick={(event) => {
@@ -131,30 +134,31 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
           }}
           type="button"
         >
-          <Heart
-            aria-hidden="true"
-            size={12}
-            fill={post.likedByMe ? "currentColor" : "none"}
-            className="transition-colors"
-          />
+          <AeroIconBadge className="h-4 w-4" tone={post.likedByMe ? "rose" : "cyan"}>
+            <Heart aria-hidden="true" size={9} fill={post.likedByMe ? "currentColor" : "none"} className="transition-colors" />
+          </AeroIconBadge>
           {post.likeCount}
         </button>
         <Link
           aria-label={`Open post ${post.id}`}
-          className="aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
+          className="aero-pill aero-focus-ring inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold text-sky-900"
           to={`/post/${post.id}`}
           onClick={(event) => event.stopPropagation()}
         >
-          <Eye aria-hidden="true" size={12} />
+          <AeroIconBadge className="h-4 w-4" tone="cyan">
+            <Eye aria-hidden="true" size={9} />
+          </AeroIconBadge>
           Open
         </Link>
         <Link
           aria-label={`Open graph for root ${post.rootId}`}
-          className="aero-focus-ring inline-flex shrink-0 items-center gap-1 rounded-full border border-white/70 bg-white/40 px-3 py-1.5 text-xs font-semibold text-sky-900 hover:bg-white/55"
+          className="aero-pill aero-focus-ring inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold text-sky-900"
           to={`/graph/${post.rootId}`}
           onClick={(event) => event.stopPropagation()}
         >
-          <Network aria-hidden="true" size={12} />
+          <AeroIconBadge className="h-4 w-4" tone="violet">
+            <Network aria-hidden="true" size={9} />
+          </AeroIconBadge>
           Graph
         </Link>
       </footer>

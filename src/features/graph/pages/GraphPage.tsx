@@ -17,6 +17,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConversationGraph } from "../../../api/graphApi";
 import { getPostById, likePost, unlikePost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
@@ -267,7 +268,7 @@ export function GraphPage() {
         <div className="flex items-center gap-2">
           <button
             aria-label="Go back"
-            className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+            className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
             onClick={() => {
               if (window.history.length > 1) {
                 navigate(-1);
@@ -277,11 +278,15 @@ export function GraphPage() {
             }}
             type="button"
           >
-            <ArrowLeft aria-hidden="true" size={12} />
+            <AeroIconBadge className="h-4 w-4" tone="violet">
+              <ArrowLeft aria-hidden="true" size={9} />
+            </AeroIconBadge>
             Back
           </button>
           <GelButton aria-label="Increase graph depth" onClick={() => setDepth((current) => current + 1)} type="button">
-            <Plus aria-hidden="true" size={14} />
+            <AeroIconBadge className="h-5 w-5" tone="cyan">
+              <Plus aria-hidden="true" size={11} />
+            </AeroIconBadge>
             Expand depth
           </GelButton>
         </div>
@@ -350,7 +355,7 @@ export function GraphPage() {
               </div>
               <button
                 aria-label="Close node panel"
-                className="aero-focus-ring rounded-full border border-white/70 bg-white/45 px-3 py-1 text-xs font-bold text-sky-900"
+                className="aero-pill aero-focus-ring px-3 py-1 text-xs font-bold text-sky-900"
                 onClick={() => setSelectedNodeId(null)}
                 type="button"
               >
@@ -367,28 +372,35 @@ export function GraphPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 aria-label={selectedNodeEngagement?.likedByMe ? "Unlike reply" : "Like reply"}
-                className={`aero-focus-ring inline-flex items-center gap-1 rounded-full border px-4 py-2 text-xs font-semibold ${
+                className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${
                   selectedNodeEngagement?.likedByMe
-                    ? "border-rose-200/90 bg-rose-100/65 text-rose-600"
-                    : "border-white/70 bg-white/45 text-sky-900"
+                    ? "text-rose-600"
+                    : "text-sky-900"
                 }`}
                 disabled={selectedNodeLikePending}
                 onClick={() => handleToggleNodeLike(selectedNode.id, Boolean(selectedNodeEngagement?.likedByMe))}
                 type="button"
               >
-                <Heart aria-hidden="true" size={12} fill={selectedNodeEngagement?.likedByMe ? "currentColor" : "none"} />
+                <AeroIconBadge className="h-4 w-4" tone={selectedNodeEngagement?.likedByMe ? "rose" : "cyan"}>
+                  <Heart aria-hidden="true" size={9} fill={selectedNodeEngagement?.likedByMe ? "currentColor" : "none"} />
+                </AeroIconBadge>
                 {selectedNodeEngagement?.likeCount ?? 0}
               </button>
               <Link className="aero-gel aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs" to={`/post/${selectedNode.id}`}>
+                <AeroIconBadge className="h-4 w-4" tone="cyan">
+                  <Network aria-hidden="true" size={9} />
+                </AeroIconBadge>
                 Open post
               </Link>
               <button
                 aria-label="Expand graph depth"
-                className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+                className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
                 onClick={() => setDepth((current) => current + 1)}
                 type="button"
               >
-                <Network aria-hidden="true" size={12} />
+                <AeroIconBadge className="h-4 w-4" tone="violet">
+                  <Network aria-hidden="true" size={9} />
+                </AeroIconBadge>
                 Expand
               </button>
             </div>

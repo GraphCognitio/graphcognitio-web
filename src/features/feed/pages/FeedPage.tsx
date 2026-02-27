@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroModal } from "../../../components/ui/AeroModal";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
@@ -57,7 +58,12 @@ export function FeedPage() {
           <p className="aero-subtitle text-sm">Infinite pan canvas of root posts</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="aero-glass px-3 py-2 text-xs font-semibold text-sky-900">{user?.name ?? "Guest"}</span>
+          <span className="aero-pill inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-sky-900">
+            <AeroIconBadge className="h-5 w-5" tone="lime">
+              <span className="text-[10px] font-black leading-none">U</span>
+            </AeroIconBadge>
+            {user?.name ?? "Guest"}
+          </span>
           <GelButton
             aria-label="Create new post"
             onClick={() => {
@@ -66,7 +72,9 @@ export function FeedPage() {
             }}
             type="button"
           >
-            <Plus aria-hidden="true" size={14} />
+            <AeroIconBadge className="h-5 w-5" tone="cyan">
+              <Plus aria-hidden="true" size={11} />
+            </AeroIconBadge>
             New post
           </GelButton>
           <GelButton
@@ -76,7 +84,9 @@ export function FeedPage() {
               navigate("/login", { replace: true });
             }}
           >
-            <LogOut aria-hidden="true" size={14} />
+            <AeroIconBadge className="h-5 w-5" tone="violet">
+              <LogOut aria-hidden="true" size={11} />
+            </AeroIconBadge>
             Logout
           </GelButton>
         </div>
@@ -126,7 +136,7 @@ export function FeedPage() {
             <span className="text-xs font-semibold text-sky-900/75">{content.length}/500</span>
             <div className="flex items-center gap-2">
               <button
-                className="aero-focus-ring rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+                className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
                 disabled={createPostMutation.isPending}
                 onClick={() => setComposerOpen(false)}
                 type="button"
@@ -141,7 +151,9 @@ export function FeedPage() {
                 {createPostMutation.isPending ? (
                   <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
                 ) : (
-                  <Plus aria-hidden="true" size={14} />
+                  <AeroIconBadge className="h-5 w-5" tone="cyan">
+                    <Plus aria-hidden="true" size={11} />
+                  </AeroIconBadge>
                 )}
                 Publish
               </GelButton>

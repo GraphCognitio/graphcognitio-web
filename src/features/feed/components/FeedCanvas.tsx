@@ -2,6 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { AlertCircle, LoaderCircle, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getFeedPage } from "../../../api/feedApi";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
@@ -472,7 +473,9 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
               }}
               type="button"
             >
-              <ZoomOut aria-hidden="true" size={14} />
+              <AeroIconBadge tone="violet">
+                <ZoomOut aria-hidden="true" size={11} />
+              </AeroIconBadge>
             </GelButton>
             <GelButton
               aria-label="Zoom in"
@@ -481,7 +484,9 @@ export function FeedCanvas({ viewerUserId }: FeedCanvasProps) {
               }}
               type="button"
             >
-              <ZoomIn aria-hidden="true" size={14} />
+              <AeroIconBadge tone="cyan">
+                <ZoomIn aria-hidden="true" size={11} />
+              </AeroIconBadge>
             </GelButton>
           </div>
         </div>

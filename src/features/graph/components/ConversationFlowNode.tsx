@@ -1,5 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Heart } from "lucide-react";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import type { ConversationFlowNodeData } from "../types/graphTypes";
 import { formatRelativeTime } from "../../feed/utils/relativeTime";
 
@@ -49,10 +50,10 @@ export function ConversationFlowNode({ data: unsafeData, selected }: NodeProps) 
         </p>
         <button
           aria-label={data.likedByMe ? `Unlike reply ${data.id}` : `Like reply ${data.id}`}
-          className={`nodrag nopan nowheel inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+          className={`aero-pill nodrag nopan nowheel inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold ${
             data.likedByMe
-              ? "border-rose-200/90 bg-rose-100/60 text-rose-600"
-              : "border-white/70 bg-white/40 text-sky-900"
+              ? "text-rose-600"
+              : "text-sky-900"
           }`}
           disabled={data.likePending}
           onClick={(event) => {
@@ -61,7 +62,9 @@ export function ConversationFlowNode({ data: unsafeData, selected }: NodeProps) 
           }}
           type="button"
         >
-          <Heart aria-hidden="true" size={11} fill={data.likedByMe ? "currentColor" : "none"} />
+          <AeroIconBadge className="h-4 w-4" tone={data.likedByMe ? "rose" : "cyan"}>
+            <Heart aria-hidden="true" size={9} fill={data.likedByMe ? "currentColor" : "none"} />
+          </AeroIconBadge>
           {data.likeCount}
         </button>
       </div>

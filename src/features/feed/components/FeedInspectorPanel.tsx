@@ -1,5 +1,6 @@
 import { ArrowRight, Network } from "lucide-react";
 import { Link } from "react-router-dom";
+import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import type { FeedWorldNode } from "../canvas/worldPlacement";
 import { formatRelativeTime } from "../utils/relativeTime";
 
@@ -29,7 +30,7 @@ export function FeedInspectorPanel({ node, onClose }: FeedInspectorPanelProps) {
         </div>
         <button
           aria-label="Close preview panel"
-          className="aero-focus-ring rounded-full border border-white/70 bg-white/45 px-3 py-1 text-xs font-bold text-sky-900"
+          className="aero-pill aero-focus-ring px-3 py-1 text-xs font-bold text-sky-900"
           onClick={onClose}
           type="button"
         >
@@ -47,14 +48,18 @@ export function FeedInspectorPanel({ node, onClose }: FeedInspectorPanelProps) {
           className="aero-gel aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs"
           to={`/post/${node.post.id}`}
         >
+          <AeroIconBadge className="h-4 w-4" tone="cyan">
+            <ArrowRight aria-hidden="true" size={9} />
+          </AeroIconBadge>
           Open post
-          <ArrowRight aria-hidden="true" size={12} />
         </Link>
         <Link
-          className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+          className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
           to={`/graph/${node.post.rootId}`}
         >
-          <Network aria-hidden="true" size={12} />
+          <AeroIconBadge className="h-4 w-4" tone="violet">
+            <Network aria-hidden="true" size={9} />
+          </AeroIconBadge>
           View graph
         </Link>
       </div>

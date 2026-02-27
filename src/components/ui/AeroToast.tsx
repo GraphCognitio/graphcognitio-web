@@ -1,4 +1,5 @@
 import { CircleCheck, CircleX } from "lucide-react";
+import { AeroIconBadge } from "./AeroIconBadge";
 
 type AeroToastProps = {
   message: string;
@@ -17,9 +18,13 @@ export function AeroToast({ message, variant = "success" }: AeroToastProps) {
       aria-live="polite"
     >
       {isSuccess ? (
-        <CircleCheck aria-hidden="true" className="text-emerald-600" size={18} />
+        <AeroIconBadge tone="lime">
+          <CircleCheck aria-hidden="true" size={14} />
+        </AeroIconBadge>
       ) : (
-        <CircleX aria-hidden="true" className="text-rose-600" size={18} />
+        <AeroIconBadge tone="rose">
+          <CircleX aria-hidden="true" size={14} />
+        </AeroIconBadge>
       )}
       <span>{message}</span>
     </div>

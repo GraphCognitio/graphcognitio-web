@@ -325,6 +325,90 @@
   opacity: 0.82;
 }
 
+.aero-pill {
+  position: relative;
+  border-radius: 999px;
+  border: 1px solid rgba(137, 201, 235, 0.9);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(206, 243, 255, 0.76));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -8px 14px rgba(108, 187, 226, 0.28),
+    0 8px 16px -12px rgba(7, 93, 153, 0.52);
+  transition: transform 120ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.aero-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -10px 14px rgba(107, 188, 227, 0.34),
+    0 10px 18px -12px rgba(7, 93, 153, 0.62);
+}
+
+.aero-pill:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    inset 0 -6px 12px rgba(87, 170, 212, 0.38),
+    0 7px 12px -11px rgba(7, 93, 153, 0.5);
+}
+
+.aero-pill:disabled {
+  opacity: 0.75;
+}
+
+.aero-icon-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  color: #eefeef;
+  background: linear-gradient(180deg, #8deeff 0%, #37c8f8 50%, #169fe0 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -6px 10px rgba(8, 86, 146, 0.42),
+    0 6px 12px -10px rgba(8, 79, 136, 0.7);
+}
+
+.aero-icon-badge::before {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 8%;
+  height: 38%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+}
+
+.aero-icon-badge > * {
+  position: relative;
+  z-index: 1;
+}
+
+.aero-icon-badge--cyan {
+  background: linear-gradient(180deg, #9ef4ff 0%, #4ad1ff 52%, #209fe5 100%);
+}
+
+.aero-icon-badge--lime {
+  background: linear-gradient(180deg, #e1ffa0 0%, #8fe54c 50%, #58bd35 100%);
+}
+
+.aero-icon-badge--rose {
+  background: linear-gradient(180deg, #ffd1e8 0%, #ff84b5 48%, #e85a91 100%);
+}
+
+.aero-icon-badge--violet {
+  background: linear-gradient(180deg, #ebdbff 0%, #b288ff 50%, #8a61e9 100%);
+}
+
 .aero-input {
   width: 100%;
   border-radius: var(--aero-radius-lg);
@@ -404,6 +488,7 @@
   }
 
   .aero-float,
+  .aero-pill,
   .aero-gel,
   .aero-input {
     transition: none;
