@@ -34,6 +34,14 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+function isInteractiveTarget(target: EventTarget | null) {
+  if (!(target instanceof Element)) {
+    return false;
+  }
+
+  return Boolean(target.closest("a,button,input,textarea,select,label"));
+}
+
 function cameraToViewport(camera: CameraState) {
   const halfWidth = camera.width / (2 * camera.zoom);
   const halfHeight = camera.height / (2 * camera.zoom);
@@ -301,6 +309,9 @@ export function FeedCanvas() {
           if (event.button !== 0) {
             return;
           }
+          if (isInteractiveTarget(event.target)) {
+            return;
+          }
 
           event.currentTarget.setPointerCapture(event.pointerId);
           cameraRef.current.dragActive = true;
@@ -322,7 +333,9 @@ export function FeedCanvas() {
           camera.targetY -= deltaY / camera.targetZoom;
         }}
         onPointerUp={(event) => {
-          event.currentTarget.releasePointerCapture(event.pointerId);
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
           cameraRef.current.dragActive = false;
         }}
         onPointerCancel={() => {

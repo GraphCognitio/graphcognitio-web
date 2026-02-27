@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getPostById, replyToPost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
 import { AeroToast } from "../../../components/ui/AeroToast";
@@ -15,6 +15,7 @@ type ProblemDetail = {
 };
 
 export function PostDetailPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const queryClient = useQueryClient();
   const [replyContent, setReplyContent] = useState("");
@@ -48,12 +49,31 @@ export function PostDetailPage() {
 
   const post = postQuery.data;
   const canOpenGraph = Boolean(post && post.parentId === null);
+  const parentPostId = post?.parentId ?? null;
   const replyError = (replyMutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
   const postError = (postQuery.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
 
   return (
     <AeroScene>
-      <div className="mx-auto mt-6 grid max-w-5xl gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="mx-auto mt-6 max-w-5xl">
+        <button
+          aria-label="Back to feed"
+          className="aero-focus-ring mb-3 inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+          onClick={() => {
+            if (window.history.length > 1) {
+              navigate(-1);
+              return;
+            }
+            navigate("/feed");
+          }}
+          type="button"
+        >
+          <ArrowLeft aria-hidden="true" size={12} />
+          Back to feed
+        </button>
+      </div>
+
+      <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[2fr_1fr]">
         <GlassCard>
           {postQuery.isLoading ? (
             <div className="flex items-center gap-2 text-sm font-semibold text-sky-900">
@@ -126,18 +146,33 @@ export function PostDetailPage() {
 
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold text-sky-900/75">{replyContent.length}/500</span>
-              <GelButton
-                aria-label="Send reply"
-                disabled={replyMutation.isPending || postQuery.isLoading}
-                type="submit"
-              >
-                {replyMutation.isPending ? (
-                  <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
-                ) : (
-                  <SendHorizontal aria-hidden="true" size={14} />
-                )}
-                Send
-              </GelButton>
+              <div className="flex items-center gap-2">
+                {parentPostId ? (
+                  <button
+                    className="aero-focus-ring rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+                    disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
+                    onClick={() => {
+                      replyMutation.mutate({ postId: parentPostId, content: replyContent.trim() });
+                    }}
+                    type="button"
+                  >
+                    Reply parent
+                  </button>
+                ) : null}
+
+                <GelButton
+                  aria-label="Send reply"
+                  disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
+                  type="submit"
+                >
+                  {replyMutation.isPending ? (
+                    <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
+                  ) : (
+                    <SendHorizontal aria-hidden="true" size={14} />
+                  )}
+                  Send
+                </GelButton>
+              </div>
             </div>
           </form>
 

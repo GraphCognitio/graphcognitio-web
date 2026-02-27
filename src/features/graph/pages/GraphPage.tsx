@@ -13,9 +13,9 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import { LoaderCircle, Network, Plus } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Network, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConversationGraph } from "../../../api/graphApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
 import { AeroToast } from "../../../components/ui/AeroToast";
@@ -41,6 +41,7 @@ const nodeTypes: NodeTypes = {
 };
 
 export function GraphPage() {
+  const navigate = useNavigate();
   const { rootId } = useParams();
   const [depth, setDepth] = useState(INITIAL_DEPTH);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -131,6 +132,21 @@ export function GraphPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            aria-label="Go back"
+            className="aero-focus-ring inline-flex items-center gap-1 rounded-full border border-white/70 bg-white/45 px-4 py-2 text-xs font-semibold text-sky-900"
+            onClick={() => {
+              if (window.history.length > 1) {
+                navigate(-1);
+                return;
+              }
+              navigate("/feed");
+            }}
+            type="button"
+          >
+            <ArrowLeft aria-hidden="true" size={12} />
+            Back
+          </button>
           <GelButton aria-label="Increase graph depth" onClick={() => setDepth((current) => current + 1)} type="button">
             <Plus aria-hidden="true" size={14} />
             Expand depth
