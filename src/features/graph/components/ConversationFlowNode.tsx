@@ -4,6 +4,19 @@ import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import type { ConversationFlowNodeData } from "../types/graphTypes";
 import { formatRelativeTime } from "../../feed/utils/relativeTime";
 
+const HANDLE_SLOTS = ["0", "1", "2"] as const;
+
+function handleStyle(side: "top" | "right" | "bottom" | "left", slotIndex: number): React.CSSProperties {
+  const slotOffsets = ["30%", "50%", "70%"] as const;
+  const offset = slotOffsets[slotIndex] ?? "50%";
+
+  if (side === "top" || side === "bottom") {
+    return { left: offset };
+  }
+
+  return { top: offset };
+}
+
 export function ConversationFlowNode({ data: unsafeData, selected }: NodeProps) {
   const data = unsafeData as ConversationFlowNodeData;
 
@@ -23,15 +36,87 @@ export function ConversationFlowNode({ data: unsafeData, selected }: NodeProps) 
             : undefined,
       }}
     >
-      <Handle id="tgt-top" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="target" position={Position.Top} />
-      <Handle id="tgt-right" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="target" position={Position.Right} />
-      <Handle id="tgt-bottom" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="target" position={Position.Bottom} />
-      <Handle id="tgt-left" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="target" position={Position.Left} />
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`tgt-top-${slot}`}
+          id={`tgt-top-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("top", slotIndex)}
+          type="target"
+          position={Position.Top}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`tgt-right-${slot}`}
+          id={`tgt-right-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("right", slotIndex)}
+          type="target"
+          position={Position.Right}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`tgt-bottom-${slot}`}
+          id={`tgt-bottom-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("bottom", slotIndex)}
+          type="target"
+          position={Position.Bottom}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`tgt-left-${slot}`}
+          id={`tgt-left-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("left", slotIndex)}
+          type="target"
+          position={Position.Left}
+        />
+      ))}
 
-      <Handle id="src-top" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="source" position={Position.Top} />
-      <Handle id="src-right" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="source" position={Position.Right} />
-      <Handle id="src-bottom" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="source" position={Position.Bottom} />
-      <Handle id="src-left" className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none" type="source" position={Position.Left} />
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`src-top-${slot}`}
+          id={`src-top-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("top", slotIndex)}
+          type="source"
+          position={Position.Top}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`src-right-${slot}`}
+          id={`src-right-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("right", slotIndex)}
+          type="source"
+          position={Position.Right}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`src-bottom-${slot}`}
+          id={`src-bottom-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("bottom", slotIndex)}
+          type="source"
+          position={Position.Bottom}
+        />
+      ))}
+      {HANDLE_SLOTS.map((slot, slotIndex) => (
+        <Handle
+          key={`src-left-${slot}`}
+          id={`src-left-${slot}`}
+          className="nodrag nopan !h-2 !w-2 !border-0 !bg-transparent !opacity-0 !pointer-events-none"
+          style={handleStyle("left", slotIndex)}
+          type="source"
+          position={Position.Left}
+        />
+      ))}
 
       <div className="flex items-start justify-between gap-2">
         <p className="aero-heading text-sm font-black">{data.authorName}</p>

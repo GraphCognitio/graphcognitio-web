@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { LoaderCircle, LogOut, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
@@ -11,6 +11,13 @@ import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { FeedCanvas } from "../components/FeedCanvas";
+import { RecentPostsSidebar } from "../components/RecentPostsSidebar";
+import {
+  clearRecentPosts,
+  readRecentPosts,
+  type RecentPostItem,
+} from "../storage/recentPostsStorage";
+import type { PostResponse } from "../types/feedTypes";
 
 type ProblemDetail = {
   detail?: string;
@@ -23,16 +30,39 @@ export function FeedPage() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [content, setContent] = useState("");
   const [showCreatedToast, setShowCreatedToast] = useState(false);
+  const [focusRequest, setFocusRequest] = useState<{ postId: string; post?: PostResponse } | null>(null);
+  const [recentPosts, setRecentPosts] = useState<RecentPostItem[]>([]);
+  const [recentCollapsed, setRecentCollapsed] = useState(false);
 
   const createPostMutation = useMutation({
     mutationFn: createPost,
-    onSuccess: async () => {
+    onSuccess: async (createdPost) => {
       setContent("");
       setComposerOpen(false);
       setShowCreatedToast(true);
+      setFocusRequest({ postId: createdPost.id, post: createdPost });
       await queryClient.invalidateQueries({ queryKey: ["feed", "root-posts"] });
     },
   });
+
+  const handleFocusHandled = useCallback((postId: string) => {
+    setFocusRequest((current) => (current?.postId === postId ? null : current));
+  }, []);
+
+  useEffect(() => {
+    const reloadRecentPosts = () => {
+      setRecentPosts(readRecentPosts(user?.id ?? null));
+    };
+
+    reloadRecentPosts();
+    window.addEventListener("storage", reloadRecentPosts);
+    window.addEventListener("focus", reloadRecentPosts);
+
+    return () => {
+      window.removeEventListener("storage", reloadRecentPosts);
+      window.removeEventListener("focus", reloadRecentPosts);
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (!showCreatedToast) {
@@ -51,7 +81,7 @@ export function FeedPage() {
   const createPostError = (createPostMutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
 
   return (
-    <AeroScene>
+    <AeroScene contentClassName="max-w-[92rem] p-4 md:p-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="aero-heading text-3xl font-black">GraphCognitio Feed</h1>
@@ -98,7 +128,24 @@ export function FeedPage() {
         </div>
       ) : null}
 
-      <FeedCanvas viewerUserId={user?.id ?? null} />
+      <div className="lg:pr-[352px]">
+        <FeedCanvas
+          viewerUserId={user?.id ?? null}
+          focusPostId={focusRequest?.postId ?? null}
+          focusPostPayload={focusRequest?.post ?? null}
+          onFocusHandled={handleFocusHandled}
+        />
+      </div>
+      <RecentPostsSidebar
+        collapsed={recentCollapsed}
+        items={recentPosts}
+        onClear={() => {
+          clearRecentPosts(user?.id ?? null);
+          setRecentPosts([]);
+        }}
+        onFocusPost={(postId) => setFocusRequest({ postId })}
+        onToggleCollapsed={() => setRecentCollapsed((current) => !current)}
+      />
 
       <AeroModal
         title="Create root post"

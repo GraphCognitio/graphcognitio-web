@@ -1,7 +1,7 @@
 import { type InfiniteData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { ArrowLeft, Heart, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
@@ -9,6 +9,8 @@ import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
+import { useAuth } from "../../auth/hooks/useAuth";
+import { touchRecentPost } from "../../feed/storage/recentPostsStorage";
 import type { FeedResponse, PostResponse } from "../../feed/types/feedTypes";
 import { formatRelativeTime } from "../../feed/utils/relativeTime";
 
@@ -20,6 +22,7 @@ export function PostDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [replyContent, setReplyContent] = useState("");
 
   const postQuery = useQuery({
@@ -95,6 +98,15 @@ export function PostDetailPage() {
   }
 
   const post = postQuery.data;
+
+  useEffect(() => {
+    if (!user?.id || !post) {
+      return;
+    }
+
+    touchRecentPost(user.id, post);
+  }, [post, user?.id]);
+
   const canOpenGraph = Boolean(post && post.parentId === null);
   const parentPostId = post?.parentId ?? null;
   const replyError = (replyMutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;

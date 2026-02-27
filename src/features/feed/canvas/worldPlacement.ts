@@ -136,6 +136,51 @@ function updateBounds(world: FeedWorld, x: number, y: number, width: number, hei
   world.bounds.maxY = Math.max(world.bounds.maxY, bottom);
 }
 
+function rebuildWorldBounds(world: FeedWorld) {
+  if (world.nodesById.size === 0) {
+    world.bounds.minX = 0;
+    world.bounds.maxX = 0;
+    world.bounds.minY = 0;
+    world.bounds.maxY = 0;
+    return;
+  }
+
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  for (const node of world.nodesById.values()) {
+    const left = node.x - FEED_NODE_OCCUPANCY_WIDTH / 2;
+    const right = node.x + FEED_NODE_OCCUPANCY_WIDTH / 2;
+    const top = node.y - FEED_NODE_OCCUPANCY_HEIGHT / 2;
+    const bottom = node.y + FEED_NODE_OCCUPANCY_HEIGHT / 2;
+
+    minX = Math.min(minX, left);
+    maxX = Math.max(maxX, right);
+    minY = Math.min(minY, top);
+    maxY = Math.max(maxY, bottom);
+  }
+
+  world.bounds.minX = minX;
+  world.bounds.maxX = maxX;
+  world.bounds.minY = minY;
+  world.bounds.maxY = maxY;
+}
+
+function rebuildOccupiedCells(world: FeedWorld) {
+  world.occupiedCells.clear();
+  for (const node of world.nodesById.values()) {
+    occupyCells(
+      world,
+      node.x,
+      node.y,
+      FEED_NODE_OCCUPANCY_WIDTH,
+      FEED_NODE_OCCUPANCY_HEIGHT
+    );
+  }
+}
+
 function perimeterOffsets(ring: number) {
   if (ring === 0) {
     return [[0, 0]] as Array<[number, number]>;
@@ -171,7 +216,13 @@ function findPlacement(world: FeedWorld, targetX: number, targetY: number, width
   return { x: targetX, y: targetY };
 }
 
-export function placeNodeInWorld(world: FeedWorld, post: PostResponse) {
+function createNodeAtTarget(
+  world: FeedWorld,
+  post: PostResponse,
+  targetX: number,
+  targetY: number,
+  preferExactTarget: boolean
+) {
   const existing = world.nodesById.get(post.id);
   if (existing) {
     return existing;
@@ -180,21 +231,15 @@ export function placeNodeInWorld(world: FeedWorld, post: PostResponse) {
   const index = world.nextPlacementIndex;
   world.nextPlacementIndex += 1;
 
-  const seed = hashString(post.id);
-  const target = spiralTarget(index);
-  const jitterX = (toUnit(seed) - 0.5) * JITTER;
-  const jitterY = (toUnit(hashString(`${post.id}:${index}`)) - 0.5) * JITTER;
-
-  const desiredX = target.x + jitterX;
-  const desiredY = target.y + jitterY;
-
-  const placement = findPlacement(
-    world,
-    desiredX,
-    desiredY,
-    FEED_NODE_OCCUPANCY_WIDTH,
-    FEED_NODE_OCCUPANCY_HEIGHT
-  );
+  const placement = preferExactTarget
+    ? { x: targetX, y: targetY }
+    : findPlacement(
+        world,
+        targetX,
+        targetY,
+        FEED_NODE_OCCUPANCY_WIDTH,
+        FEED_NODE_OCCUPANCY_HEIGHT
+      );
 
   occupyCells(
     world,
@@ -222,5 +267,40 @@ export function placeNodeInWorld(world: FeedWorld, post: PostResponse) {
   };
 
   world.nodesById.set(post.id, node);
+  return node;
+}
+
+export function placeNodeInWorldAtTarget(world: FeedWorld, post: PostResponse, targetX: number, targetY: number) {
+  return createNodeAtTarget(world, post, targetX, targetY, true);
+}
+
+export function placeNodeInWorld(world: FeedWorld, post: PostResponse) {
+  const existing = world.nodesById.get(post.id);
+  if (existing) {
+    return existing;
+  }
+
+  const index = world.nextPlacementIndex;
+  const seed = hashString(post.id);
+  const target = spiralTarget(index);
+  const jitterX = (toUnit(seed) - 0.5) * JITTER;
+  const jitterY = (toUnit(hashString(`${post.id}:${index}`)) - 0.5) * JITTER;
+
+  const desiredX = target.x + jitterX;
+  const desiredY = target.y + jitterY;
+
+  return createNodeAtTarget(world, post, desiredX, desiredY, false);
+}
+
+export function moveNodeInWorld(world: FeedWorld, nodeId: string, targetX: number, targetY: number) {
+  const node = world.nodesById.get(nodeId);
+  if (!node) {
+    return null;
+  }
+
+  node.x = targetX;
+  node.y = targetY;
+  rebuildOccupiedCells(world);
+  rebuildWorldBounds(world);
   return node;
 }

@@ -1,5 +1,5 @@
 import "@xyflow/react/dist/style.css";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import {
   Background,
@@ -7,15 +7,16 @@ import {
   MarkerType,
   MiniMap,
   ReactFlow,
+  type ReactFlowInstance,
   type Edge,
   type Node,
   type NodeTypes,
 } from "@xyflow/react";
-import { ArrowLeft, Heart, LoaderCircle, Network, Plus } from "lucide-react";
+import { ArrowLeft, Heart, LoaderCircle, Network, Plus, Reply, SendHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConversationGraph } from "../../../api/graphApi";
-import { getPostById, likePost, unlikePost } from "../../../api/postApi";
+import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
 import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
@@ -44,9 +45,36 @@ type GraphPosition = {
 };
 
 type HandleSide = "top" | "right" | "bottom" | "left";
+type LaneSlot = "0" | "1" | "2";
+type PendingNodeFocus = {
+  nodeId: string;
+  expandedDepthOnce: boolean;
+};
 
 const INITIAL_DEPTH = 2;
 const GRAPH_LIMIT = 120;
+const EDGE_COLOR_PALETTE = [
+  "#1ea8e8",
+  "#38c9ff",
+  "#51d5b0",
+  "#79d64a",
+  "#a97cff",
+  "#ff92d1",
+  "#f5c86b",
+];
+
+function hashString(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function edgeColorById(edgeId: string) {
+  return EDGE_COLOR_PALETTE[hashString(edgeId) % EDGE_COLOR_PALETTE.length];
+}
 
 function closestHandleSide(from: GraphPosition, to: GraphPosition): HandleSide {
   const deltaX = to.x - from.x;
@@ -59,12 +87,26 @@ function closestHandleSide(from: GraphPosition, to: GraphPosition): HandleSide {
   return deltaY >= 0 ? "bottom" : "top";
 }
 
-function sourceHandleId(side: HandleSide) {
-  return `src-${side}`;
+function centeredLaneFromIndex(index: number, count: number) {
+  return index - (count - 1) / 2;
 }
 
-function targetHandleId(side: HandleSide) {
-  return `tgt-${side}`;
+function laneSlotFromCenteredLane(centeredLane: number): LaneSlot {
+  if (centeredLane <= -0.35) {
+    return "0";
+  }
+  if (centeredLane >= 0.35) {
+    return "2";
+  }
+  return "1";
+}
+
+function sourceHandleId(side: HandleSide, laneSlot: LaneSlot) {
+  return `src-${side}-${laneSlot}`;
+}
+
+function targetHandleId(side: HandleSide, laneSlot: LaneSlot) {
+  return `tgt-${side}-${laneSlot}`;
 }
 
 const nodeTypes: NodeTypes = {
@@ -73,14 +115,19 @@ const nodeTypes: NodeTypes = {
 
 export function GraphPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { rootId } = useParams();
   const [depth, setDepth] = useState(INITIAL_DEPTH);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   const [nodeEngagementById, setNodeEngagementById] = useState<Record<string, NodeEngagement>>({});
+  const [layoutLikeCountByNodeId, setLayoutLikeCountByNodeId] = useState<Record<string, number>>({});
   const [pendingLikeById, setPendingLikeById] = useState<Record<string, boolean>>({});
+  const [pendingNodeFocus, setPendingNodeFocus] = useState<PendingNodeFocus | null>(null);
   const [engagementSyncError, setEngagementSyncError] = useState<string | null>(null);
   const [engagementSyncLoading, setEngagementSyncLoading] = useState(false);
   const pendingLikeByIdRef = useRef<Record<string, boolean>>({});
+  const reactFlowRef = useRef<ReactFlowInstance<Node<ConversationFlowNodeData>, Edge> | null>(null);
 
   const graphQuery = useQuery({
     queryKey: ["graph", rootId, depth, GRAPH_LIMIT],
@@ -101,6 +148,7 @@ export function GraphPage() {
     const nodeIds = nodeIdsKey ? nodeIdsKey.split("|") : [];
     if (nodeIds.length === 0) {
       setNodeEngagementById({});
+      setLayoutLikeCountByNodeId({});
       setPendingLikeById({});
       return;
     }
@@ -115,13 +163,16 @@ export function GraphPage() {
         }
 
         const nextEngagementById: Record<string, NodeEngagement> = {};
+        const nextLayoutLikeCounts: Record<string, number> = {};
         posts.forEach((post) => {
           nextEngagementById[post.id] = {
             likeCount: post.likeCount,
             likedByMe: post.likedByMe,
           };
+          nextLayoutLikeCounts[post.id] = post.likeCount;
         });
         setNodeEngagementById(nextEngagementById);
+        setLayoutLikeCountByNodeId(nextLayoutLikeCounts);
       } catch {
         if (!cancelled) {
           setEngagementSyncError("Unable to load likes for graph nodes");
@@ -138,14 +189,6 @@ export function GraphPage() {
       cancelled = true;
     };
   }, [nodeIdsKey]);
-
-  const likeCountByNodeId = useMemo(() => {
-    const likeCountMap: Record<string, number> = {};
-    graphNodes.forEach((node) => {
-      likeCountMap[node.id] = nodeEngagementById[node.id]?.likeCount ?? 0;
-    });
-    return likeCountMap;
-  }, [graphNodes, nodeEngagementById]);
 
   const handleToggleNodeLike = useCallback(async (postId: string, currentlyLikedByMe: boolean) => {
     if (pendingLikeByIdRef.current[postId]) {
@@ -175,9 +218,22 @@ export function GraphPage() {
     }
   }, []);
 
+  const replyMutation = useMutation({
+    mutationFn: replyToPost,
+    onSuccess: async (createdReply, variables) => {
+      setReplyContent("");
+      setPendingNodeFocus({ nodeId: createdReply.id, expandedDepthOnce: false });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["graph", rootId] }),
+        queryClient.invalidateQueries({ queryKey: ["post", variables.postId] }),
+        queryClient.invalidateQueries({ queryKey: ["feed", "root-posts"] }),
+      ]);
+    },
+  });
+
   const layout = useMemo(() => {
-    return buildConversationLayout(graphNodes, likeCountByNodeId);
-  }, [graphNodes, likeCountByNodeId]);
+    return buildConversationLayout(graphNodes, layoutLikeCountByNodeId);
+  }, [graphNodes, layoutLikeCountByNodeId]);
 
   const flowNodes = useMemo<Node<ConversationFlowNodeData>[]>(() => {
     return graphNodes.map((node) => {
@@ -204,32 +260,70 @@ export function GraphPage() {
   }, [graphNodes, handleToggleNodeLike, layout, nodeEngagementById, pendingLikeById]);
 
   const flowEdges = useMemo<Edge[]>(() => {
-    return graphEdges.map((edge) => {
+    const edgeGeometry = graphEdges.map((edge) => {
       const sourcePosition = layout.get(edge.sourcePostId) ?? { x: 0, y: 0 };
       const targetPosition = layout.get(edge.targetPostId) ?? { x: 0, y: 0 };
       const sourceSide = closestHandleSide(sourcePosition, targetPosition);
       const targetSide = closestHandleSide(targetPosition, sourcePosition);
+      const edgeColor = edgeColorById(edge.id);
+      const sourceAngle = Math.atan2(sourcePosition.y - targetPosition.y, sourcePosition.x - targetPosition.x);
 
       return {
-        id: edge.id,
-        source: edge.sourcePostId,
-        target: edge.targetPostId,
-        sourceHandle: sourceHandleId(sourceSide),
-        targetHandle: targetHandleId(targetSide),
+        edge,
+        sourceSide,
+        targetSide,
+        edgeColor,
+        sourceAngle,
+      };
+    });
+
+    const laneByEdgeId = new Map<string, number>();
+    const incomingGroups = new Map<string, typeof edgeGeometry>();
+
+    edgeGeometry.forEach((meta) => {
+      const groupKey = `${meta.edge.targetPostId}:${meta.targetSide}`;
+      const group = incomingGroups.get(groupKey) ?? [];
+      group.push(meta);
+      incomingGroups.set(groupKey, group);
+    });
+
+    incomingGroups.forEach((group) => {
+      group.sort((metaA, metaB) => metaA.sourceAngle - metaB.sourceAngle);
+      group.forEach((meta, index) => {
+        laneByEdgeId.set(meta.edge.id, centeredLaneFromIndex(index, group.length));
+      });
+    });
+
+    return edgeGeometry.map((meta) => {
+      const centeredLane = laneByEdgeId.get(meta.edge.id) ?? 0;
+      const laneSlot = laneSlotFromCenteredLane(centeredLane);
+      const laneMagnitude = Math.min(2.2, Math.abs(centeredLane));
+      const edgeSeed = hashString(`${meta.edge.id}:edge`);
+      const strokeWidth = 2 + (edgeSeed % 4) * 0.25;
+      const offset = 86 + Math.round(laneMagnitude * 36) + (edgeSeed % 8);
+      const borderRadius = 32 + Math.round(laneMagnitude * 18);
+
+      return {
+        id: meta.edge.id,
+        source: meta.edge.sourcePostId,
+        target: meta.edge.targetPostId,
+        sourceHandle: sourceHandleId(meta.sourceSide, laneSlot),
+        targetHandle: targetHandleId(meta.targetSide, laneSlot),
         type: "smoothstep",
         pathOptions: {
-          offset: 95,
-          borderRadius: 44,
+          offset,
+          borderRadius,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: "#1ea8e8",
+          color: meta.edgeColor,
         },
         style: {
-          stroke: "#1ea8e8",
-          strokeWidth: 2.4,
-          opacity: 0.86,
+          stroke: meta.edgeColor,
+          strokeWidth,
+          opacity: 0.9,
         },
+        zIndex: 10 + Math.round(laneMagnitude * 3),
         animated: false,
         interactionWidth: 28,
       };
@@ -242,6 +336,52 @@ export function GraphPage() {
     ? nodeEngagementById[selectedNode.id] ?? { likeCount: 0, likedByMe: false }
     : null;
   const selectedNodeLikePending = selectedNode ? Boolean(pendingLikeById[selectedNode.id]) : false;
+  const trimmedReply = replyContent.trim();
+  const canSubmitReply = Boolean(selectedNode && trimmedReply.length > 0 && trimmedReply.length <= 500);
+  const replyError = (replyMutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
+
+  useEffect(() => {
+    if (!pendingNodeFocus) {
+      return;
+    }
+
+    const targetNode = flowNodes.find((node) => node.id === pendingNodeFocus.nodeId);
+    if (targetNode) {
+      setSelectedNodeId(targetNode.id);
+
+      const flowInstance = reactFlowRef.current;
+      if (flowInstance) {
+        const currentZoom = flowInstance.getZoom();
+        flowInstance.setCenter(targetNode.position.x + 140, targetNode.position.y + 72, {
+          duration: 460,
+          zoom: Math.max(currentZoom, 1.08),
+        });
+      }
+
+      setPendingNodeFocus(null);
+      return;
+    }
+
+    const graphIsIdle = !graphQuery.isFetching && !graphQuery.isRefetching;
+    if (!graphIsIdle) {
+      return;
+    }
+
+    if (!pendingNodeFocus.expandedDepthOnce) {
+      setPendingNodeFocus((current) =>
+        current ? { ...current, expandedDepthOnce: true } : current
+      );
+      setDepth((current) => current + 1);
+      return;
+    }
+
+    setPendingNodeFocus(null);
+  }, [flowNodes, graphQuery.isFetching, graphQuery.isRefetching, pendingNodeFocus]);
+
+  useEffect(() => {
+    setReplyContent("");
+    replyMutation.reset();
+  }, [selectedNodeId]);
 
   if (!rootId) {
     return (
@@ -328,6 +468,9 @@ export function GraphPage() {
             edges={flowEdges}
             nodes={flowNodes}
             nodeTypes={nodeTypes}
+            onInit={(instance) => {
+              reactFlowRef.current = instance;
+            }}
             onNodeClick={(_, node) => setSelectedNodeId(node.id)}
             nodesDraggable={false}
             panOnDrag
@@ -404,6 +547,70 @@ export function GraphPage() {
                 Expand
               </button>
             </div>
+
+            <div className="my-3 border-t border-white/40" />
+
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <AeroIconBadge className="h-5 w-5" tone="cyan">
+                  <Reply aria-hidden="true" size={11} />
+                </AeroIconBadge>
+                <p className="text-xs font-black uppercase tracking-[0.06em] text-sky-900/85">Reply in graph</p>
+              </div>
+
+              <form
+                className="space-y-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (!selectedNode || !canSubmitReply) {
+                    return;
+                  }
+                  replyMutation.mutate({ postId: selectedNode.id, content: trimmedReply });
+                }}
+              >
+                <label className="sr-only" htmlFor="graph-reply-content">
+                  Reply content
+                </label>
+                <textarea
+                  id="graph-reply-content"
+                  className="aero-input min-h-[110px] resize-y"
+                  maxLength={500}
+                  onChange={(event) => setReplyContent(event.currentTarget.value)}
+                  placeholder="Write a reply to this node..."
+                  value={replyContent}
+                />
+
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-sky-900/75">{replyContent.length}/500</span>
+                  <GelButton
+                    aria-label="Reply to selected node"
+                    className="px-3 py-1.5 text-[11px]"
+                    disabled={!canSubmitReply || replyMutation.isPending}
+                    type="submit"
+                  >
+                    {replyMutation.isPending ? (
+                      <LoaderCircle aria-hidden="true" className="animate-spin" size={12} />
+                    ) : (
+                      <AeroIconBadge className="h-4 w-4" tone="cyan">
+                        <SendHorizontal aria-hidden="true" size={9} />
+                      </AeroIconBadge>
+                    )}
+                    Reply
+                  </GelButton>
+                </div>
+              </form>
+            </div>
+
+            {replyMutation.isError ? (
+              <div className="mt-3">
+                <AeroToast message={replyError ?? "Unable to reply from graph"} variant="error" />
+              </div>
+            ) : null}
+            {replyMutation.isSuccess ? (
+              <div className="mt-3">
+                <AeroToast message="Reply sent from graph" variant="success" />
+              </div>
+            ) : null}
           </aside>
         ) : null}
       </GlassCard>
