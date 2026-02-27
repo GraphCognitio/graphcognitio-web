@@ -18,7 +18,7 @@ type Bubble = {
 
 export function BubbleLayer({ count = 18, className }: BubbleLayerProps) {
   const reducedMotion = usePrefersReducedMotion();
-  const bubbleCount = reducedMotion ? Math.max(6, Math.floor(count / 2)) : count;
+  const bubbleCount = reducedMotion ? Math.max(7, Math.floor(count / 2)) : count;
 
   const bubbles = useMemo<Bubble[]>(() => {
     return Array.from({ length: bubbleCount }, (_, index) => {
@@ -28,11 +28,11 @@ export function BubbleLayer({ count = 18, className }: BubbleLayerProps) {
       return {
         id: index,
         left: 2 + rand(17) * 96,
-        size: 14 + rand(19) * 56,
-        duration: 14 + rand(31) * 20,
-        delay: rand(37) * -24,
-        drift: -22 + rand(23) * 44,
-        opacity: 0.14 + rand(29) * 0.26,
+        size: 12 + rand(19) * 66,
+        duration: 16 + rand(31) * 24,
+        delay: rand(37) * -28,
+        drift: -30 + rand(23) * 60,
+        opacity: 0.16 + rand(29) * 0.3,
       };
     });
   }, [bubbleCount]);

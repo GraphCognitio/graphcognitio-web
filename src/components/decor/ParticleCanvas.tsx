@@ -13,7 +13,7 @@ type Particle = {
   vy: number;
   radius: number;
   alpha: number;
-  kind: "dot" | "spark";
+  kind: "dot" | "spark" | "glow";
 };
 
 export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps) {
@@ -51,15 +51,16 @@ export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps)
       particles.length = 0;
       const count = reducedMotion ? Math.floor(density / 3) : density;
       for (let index = 0; index < count; index += 1) {
-        const spark = index % 7 === 0;
+        const spark = index % 8 === 0;
+        const glow = index % 11 === 0;
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          vx: (Math.random() - 0.5) * (spark ? 0.08 : 0.14),
-          vy: (Math.random() - 0.5) * (spark ? 0.07 : 0.12),
-          radius: spark ? 2.2 + Math.random() * 1.4 : 0.9 + Math.random() * 2.2,
-          alpha: spark ? 0.22 + Math.random() * 0.22 : 0.08 + Math.random() * 0.22,
-          kind: spark ? "spark" : "dot",
+          vx: (Math.random() - 0.5) * (spark ? 0.06 : 0.12),
+          vy: (Math.random() - 0.5) * (spark ? 0.05 : 0.1),
+          radius: glow ? 2.8 + Math.random() * 2 : spark ? 2.2 + Math.random() * 1.4 : 0.9 + Math.random() * 2.4,
+          alpha: glow ? 0.14 + Math.random() * 0.16 : spark ? 0.2 + Math.random() * 0.2 : 0.08 + Math.random() * 0.2,
+          kind: glow ? "glow" : spark ? "spark" : "dot",
         });
       }
     };
@@ -96,6 +97,24 @@ export function ParticleCanvas({ className, density = 34 }: ParticleCanvasProps)
           context.moveTo(particle.x, particle.y - particle.radius);
           context.lineTo(particle.x, particle.y + particle.radius);
           context.stroke();
+          continue;
+        }
+
+        if (particle.kind === "glow") {
+          const gradient = context.createRadialGradient(
+            particle.x,
+            particle.y,
+            0,
+            particle.x,
+            particle.y,
+            particle.radius * 3.2
+          );
+          gradient.addColorStop(0, `rgba(232, 252, 255, ${particle.alpha})`);
+          gradient.addColorStop(1, "rgba(232, 252, 255, 0)");
+          context.fillStyle = gradient;
+          context.beginPath();
+          context.arc(particle.x, particle.y, particle.radius * 3.2, 0, Math.PI * 2);
+          context.fill();
           continue;
         }
 
