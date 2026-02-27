@@ -221,16 +221,18 @@ export function FeedCanvas() {
         return intersectsViewport(node, expandedViewport);
       });
 
-      candidates.sort((nodeA, nodeB) => {
-        return (
-          distanceSquared(nodeA.x, nodeA.y, camera.x, camera.y) -
-          distanceSquared(nodeB.x, nodeB.y, camera.x, camera.y)
-        );
-      });
-
       const softLimit = preferredVisibleLimit(camera.zoom);
       const maxVisible = Math.min(HARD_CAP, softLimit);
-      const nextVisible = candidates.slice(0, maxVisible);
+      const prioritized =
+        candidates.length > maxVisible
+          ? [...candidates].sort((nodeA, nodeB) => {
+              return (
+                distanceSquared(nodeA.x, nodeA.y, camera.x, camera.y) -
+                distanceSquared(nodeB.x, nodeB.y, camera.x, camera.y)
+              );
+            })
+          : candidates;
+      const nextVisible = prioritized.slice(0, maxVisible).sort((nodeA, nodeB) => nodeA.index - nodeB.index);
 
       setVisibleNodes((previous) => {
         if (sameNodeSet(previous, nextVisible)) {
@@ -263,16 +265,10 @@ export function FeedCanvas() {
     const frame = (timestamp: number) => {
       const camera = cameraRef.current;
 
-      camera.x += (camera.targetX - camera.x) * 0.17;
-      camera.y += (camera.targetY - camera.y) * 0.17;
+      camera.x = camera.targetX;
+      camera.y = camera.targetY;
       camera.zoom += (camera.targetZoom - camera.zoom) * 0.2;
 
-      if (Math.abs(camera.targetX - camera.x) < 0.01) {
-        camera.x = camera.targetX;
-      }
-      if (Math.abs(camera.targetY - camera.y) < 0.01) {
-        camera.y = camera.targetY;
-      }
       if (Math.abs(camera.targetZoom - camera.zoom) < 0.001) {
         camera.zoom = camera.targetZoom;
       }

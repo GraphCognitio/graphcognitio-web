@@ -20,7 +20,7 @@ export function FeedNodeCard({ node, onInspect }: FeedNodeCardProps) {
 
   return (
     <article
-      className="aero-glass aero-focus-ring absolute overflow-hidden p-4 transition hover:scale-[1.01]"
+      className="aero-glass aero-focus-ring absolute overflow-hidden p-4 transition"
       style={{
         width: `${node.width}px`,
         height: `${node.height}px`,
