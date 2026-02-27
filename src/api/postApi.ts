@@ -24,3 +24,13 @@ export async function replyToPost({ postId, content }: ReplyPayload) {
   const response = await apiClient.post<PostResponse>(`/posts/${postId}/reply`, { content });
   return response.data;
 }
+
+export async function likePost(postId: string) {
+  const response = await apiClient.post<PostResponse>(`/posts/${postId}/likes`);
+  return response.data;
+}
+
+export async function unlikePost(postId: string) {
+  const response = await apiClient.delete<PostResponse>(`/posts/${postId}/likes`);
+  return response.data;
+}

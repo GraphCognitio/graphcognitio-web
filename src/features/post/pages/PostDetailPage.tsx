@@ -1,13 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type InfiniteData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { ArrowLeft, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
+import { ArrowLeft, Heart, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getPostById, replyToPost } from "../../../api/postApi";
+import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
 import { AeroScene } from "../../../components/layout/AeroScene";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
+import type { FeedResponse, PostResponse } from "../../feed/types/feedTypes";
 import { formatRelativeTime } from "../../feed/utils/relativeTime";
 
 type ProblemDetail = {
@@ -26,10 +27,55 @@ export function PostDetailPage() {
     enabled: Boolean(id),
   });
 
+  const updateFeedCache = (updatedPost: PostResponse) => {
+    queryClient.setQueriesData<InfiniteData<FeedResponse>>(
+      { queryKey: ["feed", "root-posts"] },
+      (current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          pages: current.pages.map((page) => ({
+            ...page,
+            items: page.items.map((item) => (item.id === updatedPost.id ? updatedPost : item)),
+          })),
+        };
+      },
+    );
+  };
+
   const replyMutation = useMutation({
     mutationFn: replyToPost,
     onSuccess: async () => {
       setReplyContent("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["post", id] }),
+        queryClient.invalidateQueries({ queryKey: ["feed", "root-posts"] }),
+      ]);
+    },
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      if (!id) {
+        throw new Error("Invalid post id");
+      }
+
+      if (postQuery.data?.likedByMe) {
+        return unlikePost(id);
+      }
+      return likePost(id);
+    },
+    onSuccess: async (updatedPost) => {
+      if (!id) {
+        return;
+      }
+
+      queryClient.setQueryData(["post", id], updatedPost);
+      updateFeedCache(updatedPost);
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["post", id] }),
         queryClient.invalidateQueries({ queryKey: ["feed", "root-posts"] }),
@@ -91,7 +137,7 @@ export function PostDetailPage() {
               <header className="mb-4 border-b border-white/35 pb-4">
                 <h1 className="aero-heading text-2xl font-black">{post.authorName}</h1>
                 <p className="aero-subtitle text-sm">
-                  {formatRelativeTime(post.createdAt)} · {post.replyCount} replies
+                  {formatRelativeTime(post.createdAt)} · {post.replyCount} replies · {post.likeCount} likes
                 </p>
               </header>
 
@@ -101,6 +147,24 @@ export function PostDetailPage() {
                 <span className="rounded-full border border-white/70 bg-white/45 px-3 py-1 text-xs font-semibold text-sky-900">
                   Post ID: {post.id}
                 </span>
+                <button
+                  aria-label={post.likedByMe ? "Unlike post" : "Like post"}
+                  className={`aero-focus-ring inline-flex items-center gap-1 rounded-full border px-4 py-2 text-xs font-semibold ${
+                    post.likedByMe
+                      ? "border-rose-200/85 bg-rose-100/55 text-rose-600"
+                      : "border-white/70 bg-white/45 text-sky-900"
+                  }`}
+                  disabled={likeMutation.isPending}
+                  onClick={() => likeMutation.mutate()}
+                  type="button"
+                >
+                  <Heart
+                    aria-hidden="true"
+                    size={12}
+                    fill={post.likedByMe ? "currentColor" : "none"}
+                  />
+                  {post.likeCount}
+                </button>
                 {canOpenGraph ? (
                   <Link
                     className="aero-gel aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs"

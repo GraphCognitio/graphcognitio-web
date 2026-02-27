@@ -7,6 +7,8 @@ export type PostResponse = {
   parentId: string | null;
   rootId: string;
   replyCount: number;
+  likeCount: number;
+  likedByMe: boolean;
 };
 
 export type FeedResponse = {

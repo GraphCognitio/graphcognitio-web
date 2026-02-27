@@ -124,15 +124,28 @@ export function FeedCanvas() {
   }, [feedQuery.fetchNextPage]);
 
   useEffect(() => {
-    let nodesAdded = false;
+    let worldChanged = false;
     for (const post of dedupedPosts) {
-      if (!worldRef.current.nodesById.has(post.id)) {
+      const existing = worldRef.current.nodesById.get(post.id);
+      if (!existing) {
         placeNodeInWorld(worldRef.current, post);
-        nodesAdded = true;
+        worldChanged = true;
+        continue;
+      }
+
+      if (
+        existing.post.replyCount !== post.replyCount ||
+        existing.post.likeCount !== post.likeCount ||
+        existing.post.likedByMe !== post.likedByMe ||
+        existing.post.content !== post.content ||
+        existing.post.authorName !== post.authorName
+      ) {
+        existing.post = post;
+        worldChanged = true;
       }
     }
 
-    if (nodesAdded) {
+    if (worldChanged) {
       setWorldVersion((current) => current + 1);
     }
   }, [dedupedPosts]);
