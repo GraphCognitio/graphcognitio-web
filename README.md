@@ -21,10 +21,10 @@ Core product views:
 
 <p align="center">
   <img src="./docs/screenshots/postdetail.png" alt="Post detail" width="48%" />
-  <img src="./docs/screenshots/mobilefeed.png" alt="Mobile feed" width="48%" />
+  <img src="./docs/screenshots/login.png" alt="Login screen" width="48%" />
 </p>
 
-Additional portfolio captures are available in [`docs/screenshots`](./docs/screenshots), including the dock navigation, create post flow, and login screen.
+Additional portfolio captures are available in [`docs/screenshots`](./docs/screenshots), including the dock navigation, create post flow, and mobile view.
 
 ## Setup
 
