@@ -381,8 +381,9 @@
 }
 
 .aero-feed-canvas {
+  --aero-feed-canvas-radius: calc(var(--aero-radius-2xl) + 0.2rem);
   min-height: 74vh;
-  border-radius: calc(var(--aero-radius-2xl) + 0.2rem);
+  border-radius: var(--aero-feed-canvas-radius);
   border: 1px solid rgba(108, 193, 233, 0.96);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.58),
@@ -393,11 +394,14 @@
     0 20px 34px -18px rgba(5, 76, 129, 0.58);
   background:
     linear-gradient(180deg, rgba(232, 252, 255, 0.78), rgba(186, 232, 249, 0.76));
+  isolation: isolate;
+  clip-path: inset(0 round var(--aero-feed-canvas-radius));
 }
 
 .aero-feed-canvas-bg {
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   pointer-events: none;
   z-index: 0;
   background:
@@ -513,6 +517,8 @@
 
 .aero-feed-canvas > .absolute.inset-0.touch-none {
   z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
 }
 
 .aero-feed-node {
@@ -800,6 +806,10 @@
   .aero-glass,
   .aero-feed-canvas {
     border-radius: 1.3rem;
+  }
+
+  .aero-feed-canvas {
+    --aero-feed-canvas-radius: 1.3rem;
   }
 
   .aero-feed-canvas-orb--a {

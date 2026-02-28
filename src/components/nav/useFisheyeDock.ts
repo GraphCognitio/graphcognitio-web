@@ -9,6 +9,7 @@ export function useFisheyeDock({ amplitude = 0.55, sigma = 96 }: UseFisheyeDockO
   const itemRefs = useRef(new Map<string, HTMLElement>());
   const mouseYRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
+  const intensity = amplitude / 0.55;
 
   const applyTransforms = useCallback(() => {
     rafRef.current = null;
@@ -24,11 +25,11 @@ export function useFisheyeDock({ amplitude = 0.55, sigma = 96 }: UseFisheyeDockO
         const distance = mouseY - centerY;
         const influence = Math.exp(-(distance * distance) / (2 * sigma * sigma));
         scale = 1 + amplitude * influence;
-        lift = -10 * influence;
+        lift = -10 * intensity * influence;
 
         const orbScale = 1 + amplitude * 0.72 * influence;
-        const orbLift = -7 * influence;
-        const orbGlow = 20 + influence * 28;
+        const orbLift = -7 * intensity * influence;
+        const orbGlow = 20 + influence * (14 + 14 * intensity);
         element.style.setProperty("--dock-orb-scale", orbScale.toFixed(3));
         element.style.setProperty("--dock-orb-lift", `${orbLift.toFixed(2)}px`);
         element.style.setProperty("--dock-orb-glow", `${orbGlow.toFixed(2)}px`);
@@ -42,7 +43,7 @@ export function useFisheyeDock({ amplitude = 0.55, sigma = 96 }: UseFisheyeDockO
       element.style.setProperty("--dock-lift", `${lift.toFixed(2)}px`);
       element.style.zIndex = `${100 + Math.round(scale * 100)}`;
     });
-  }, [amplitude, sigma]);
+  }, [amplitude, intensity, sigma]);
 
   const scheduleUpdate = useCallback(() => {
     if (rafRef.current !== null) {

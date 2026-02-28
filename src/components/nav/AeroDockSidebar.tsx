@@ -1,4 +1,4 @@
-import { House, Menu, PanelLeftClose, PanelLeftOpen, Waves } from "lucide-react";
+import { House, PanelLeftClose, PanelLeftOpen, Waves } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
@@ -42,7 +42,7 @@ export function AeroDockSidebar({ actions, collapsed, onCollapsedChange }: AeroD
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const desktopDock = useFisheyeDock();
-  const mobileDock = useFisheyeDock({ amplitude: 0.42, sigma: 88 });
+  const mobileDock = useFisheyeDock({ amplitude: 0.26, sigma: 96 });
   const dockActions = actions ?? [];
 
   useEffect(() => {
@@ -73,22 +73,22 @@ export function AeroDockSidebar({ actions, collapsed, onCollapsedChange }: AeroD
   return (
     <>
       <aside className={`aero-dock-sidebar hidden lg:flex ${collapsed ? "is-collapsed" : "is-expanded"}`} aria-label="Primary navigation">
-        <div className="aero-dock-brand">
-          {collapsed ? <span aria-hidden="true" /> : (
-            <div>
-              <p className="aero-dock-brand-mark">GraphCognitio</p>
-              <p className="aero-dock-brand-copy">Aero dock navigation</p>
-            </div>
-          )}
-          <button
-            aria-label={collapsed ? "Expand dock" : "Collapse dock"}
-            className="aero-dock-toggle aero-focus-ring"
-            onClick={() => onCollapsedChange(!collapsed)}
-            type="button"
-          >
-            {collapsed ? <PanelLeftOpen aria-hidden="true" size={14} /> : <PanelLeftClose aria-hidden="true" size={14} />}
-          </button>
-        </div>
+          <div className="aero-dock-brand">
+            {collapsed ? <span aria-hidden="true" /> : (
+              <div>
+                <p className="aero-dock-brand-mark">GraphCognitio</p>
+                <p className="aero-dock-brand-copy">Aero dock navigation</p>
+              </div>
+            )}
+            <button
+              aria-label={collapsed ? "Expand dock" : "Collapse dock"}
+              className="aero-dock-toggle aero-focus-ring"
+              onClick={() => onCollapsedChange(!collapsed)}
+              type="button"
+            >
+              {collapsed ? <PanelLeftOpen aria-hidden="true" size={14} /> : <PanelLeftClose aria-hidden="true" size={14} />}
+            </button>
+          </div>
 
         <div className="aero-dock-bubbles" aria-hidden="true">
           <span />
@@ -97,69 +97,71 @@ export function AeroDockSidebar({ actions, collapsed, onCollapsedChange }: AeroD
           <span />
         </div>
 
-        <nav
-          className={`aero-dock-list ${collapsed ? "is-collapsed" : ""}`}
-          onPointerLeave={desktopDock.handlePointerLeave}
-          onPointerMove={desktopDock.handlePointerMove}
-        >
-          {routeItems
-            .filter((item) => item.requiresAuth)
-            .map((item) => (
-              <AeroDockItem
-                key={item.route}
-                active={location.pathname === item.route}
-                collapsed={collapsed}
-                icon={item.icon}
-                itemRef={desktopDock.registerItem(item.route)}
-                label={item.label}
-                to={item.route}
-                tone={item.tone}
-              />
-            ))}
-        </nav>
-
-        {dockActions.length > 0 ? <div className="aero-dock-divider" /> : null}
-
-        {dockActions.length > 0 ? (
-          <div
-            className={`aero-dock-list aero-dock-list--footer ${collapsed ? "is-collapsed" : ""}`}
+          <nav
+            className={`aero-dock-list ${collapsed ? "is-collapsed" : ""}`}
             onPointerLeave={desktopDock.handlePointerLeave}
             onPointerMove={desktopDock.handlePointerMove}
           >
-            {dockActions.map((action) => (
-              <AeroDockItem
-                key={action.id}
-                collapsed={collapsed}
-                icon={action.icon}
-                itemRef={desktopDock.registerItem(`action:${action.id}`)}
-                label={action.label}
-                onActivate={action.onActivate}
-                tone={action.tone}
-              />
-            ))}
-          </div>
-        ) : null}
+            {routeItems
+              .filter((item) => item.requiresAuth)
+              .map((item) => (
+                <AeroDockItem
+                  key={item.route}
+                  active={location.pathname === item.route}
+                  collapsed={collapsed}
+                  icon={item.icon}
+                  itemRef={desktopDock.registerItem(item.route)}
+                  label={item.label}
+                  to={item.route}
+                  tone={item.tone}
+                />
+              ))}
+          </nav>
 
-        <div className={`aero-dock-user ${collapsed ? "is-collapsed" : ""}`}>
-          <div className="aero-dock-user-orb">
-            <Waves aria-hidden="true" size={16} />
+          {dockActions.length > 0 ? <div className="aero-dock-divider" /> : null}
+
+          {dockActions.length > 0 ? (
+            <div
+              className={`aero-dock-list aero-dock-list--footer ${collapsed ? "is-collapsed" : ""}`}
+              onPointerLeave={desktopDock.handlePointerLeave}
+              onPointerMove={desktopDock.handlePointerMove}
+            >
+              {dockActions.map((action) => (
+                <AeroDockItem
+                  key={action.id}
+                  collapsed={collapsed}
+                  icon={action.icon}
+                  itemRef={desktopDock.registerItem(`action:${action.id}`)}
+                  label={action.label}
+                  onActivate={action.onActivate}
+                  tone={action.tone}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          <div className={`aero-dock-user ${collapsed ? "is-collapsed" : ""}`}>
+            <div className="aero-dock-user-orb">
+              <Waves aria-hidden="true" size={16} />
+            </div>
+            <div className="aero-dock-user-copy">
+              <p className="aero-dock-user-name">{welcomeLabel}</p>
+              <p className="aero-dock-user-role">Authenticated dock</p>
+            </div>
           </div>
-          <div className="aero-dock-user-copy">
-            <p className="aero-dock-user-name">{welcomeLabel}</p>
-            <p className="aero-dock-user-role">Authenticated dock</p>
-          </div>
-        </div>
       </aside>
 
-      <button
-        aria-expanded={mobileOpen}
-        aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-        className="aero-dock-mobile-trigger aero-focus-ring lg:hidden"
-        onClick={() => setMobileOpen((current) => !current)}
-        type="button"
-      >
-        <Menu aria-hidden="true" size={18} />
-      </button>
+      {!mobileOpen ? (
+        <button
+          aria-expanded="false"
+          aria-label="Open navigation menu"
+          className="aero-dock-mobile-trigger aero-focus-ring inline-flex lg:hidden"
+          onClick={() => setMobileOpen(true)}
+          type="button"
+        >
+          <PanelLeftOpen aria-hidden="true" size={18} />
+        </button>
+      ) : null}
 
       {mobileOpen ? (
         <div className="aero-dock-mobile-overlay lg:hidden" onClick={() => setMobileOpen(false)} role="presentation">
