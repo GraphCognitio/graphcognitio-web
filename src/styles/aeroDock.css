@@ -1,0 +1,494 @@
+.aero-dock-sidebar {
+  position: fixed;
+  left: 1.4rem;
+  top: 1.4rem;
+  bottom: 1.4rem;
+  z-index: 60;
+  width: 6.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0.85rem 1.1rem;
+  border-radius: 2.3rem;
+  border: 1px solid rgba(88, 180, 224, 0.96);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.95), transparent 28%),
+    linear-gradient(180deg, rgba(237, 252, 255, 0.93) 0%, rgba(170, 228, 251, 0.78) 42%, rgba(112, 201, 240, 0.6) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -24px 38px rgba(8, 110, 175, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 20px 42px -20px rgba(5, 87, 146, 0.6),
+    0 0 0 1px rgba(8, 107, 166, 0.28),
+    0 0 0 2px rgba(210, 247, 255, 0.46);
+  overflow: hidden;
+  isolation: isolate;
+  backdrop-filter: blur(10px);
+}
+
+.aero-dock-sidebar.is-expanded {
+  width: 15rem;
+}
+
+.aero-dock-sidebar::before,
+.aero-dock-mobile-drawer::before {
+  content: "";
+  position: absolute;
+  inset: 0.18rem;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  pointer-events: none;
+}
+
+.aero-dock-sidebar::after,
+.aero-dock-mobile-drawer::after {
+  content: "";
+  position: absolute;
+  left: -18%;
+  top: -6%;
+  width: 136%;
+  height: 30%;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.08) 52%, transparent 78%);
+  transform: rotate(-8deg);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.aero-dock-brand,
+.aero-dock-user,
+.aero-dock-list,
+.aero-dock-divider {
+  position: relative;
+  z-index: 1;
+}
+
+.aero-dock-brand {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.aero-dock-brand-mark {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0b5f8d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.aero-dock-brand-copy {
+  margin: 0.18rem 0 0;
+  font-size: 0.7rem;
+  color: rgba(14, 92, 136, 0.74);
+}
+
+.aero-dock-toggle,
+.aero-dock-mobile-trigger,
+.aero-dock-mobile-feed {
+  border: 1px solid rgba(20, 106, 160, 0.78);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(171, 228, 248, 0.7));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -8px 14px rgba(53, 152, 214, 0.24),
+    0 9px 18px -14px rgba(8, 89, 145, 0.72),
+    0 0 0 1px rgba(205, 245, 255, 0.64);
+  color: #0f5d88;
+}
+
+.aero-dock-toggle {
+  display: inline-flex;
+  height: 2.1rem;
+  width: 2.1rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.aero-dock-bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.aero-dock-bubbles span {
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.46);
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.1) 64%, transparent 74%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  opacity: 0.5;
+}
+
+.aero-dock-bubbles span:nth-child(1) {
+  height: 1.45rem;
+  width: 1.45rem;
+  left: 0.8rem;
+  top: 7.8rem;
+}
+
+.aero-dock-bubbles span:nth-child(2) {
+  height: 0.95rem;
+  width: 0.95rem;
+  right: 1rem;
+  top: 13.2rem;
+}
+
+.aero-dock-bubbles span:nth-child(3) {
+  height: 1.15rem;
+  width: 1.15rem;
+  left: 1.1rem;
+  bottom: 10.5rem;
+}
+
+.aero-dock-bubbles span:nth-child(4) {
+  height: 0.7rem;
+  width: 0.7rem;
+  right: 1.25rem;
+  bottom: 5.5rem;
+}
+
+.aero-dock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.aero-dock-list.is-collapsed {
+  align-items: center;
+}
+
+.aero-dock-list.is-collapsed .aero-dock-item-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.aero-dock-list--footer {
+  margin-top: auto;
+}
+
+.aero-dock-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(70, 167, 218, 0.56), transparent);
+}
+
+.aero-dock-item-shell {
+  --dock-scale: 1;
+  --dock-lift: 0px;
+  position: relative;
+  transform: translate3d(0, var(--dock-lift), 0) scale(var(--dock-scale));
+  transform-origin: center center;
+  transition:
+    transform 180ms ease,
+    filter 180ms ease;
+  will-change: transform;
+}
+
+.aero-dock-item-control {
+  position: relative;
+  display: inline-flex;
+  min-height: 3.8rem;
+  width: 100%;
+  align-items: center;
+  gap: 0.8rem;
+  border-radius: 999px;
+  padding: 0.55rem 0.72rem;
+  border: 1px solid rgba(24, 113, 171, 0.82);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.92), transparent 24%),
+    linear-gradient(180deg, rgba(248, 255, 255, 0.98) 0%, rgba(170, 229, 250, 0.78) 46%, rgba(108, 197, 236, 0.6) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -11px 18px rgba(35, 136, 197, 0.24),
+    0 10px 18px -14px rgba(6, 90, 146, 0.66),
+    0 0 0 1px rgba(220, 248, 255, 0.62);
+  color: #0d5b89;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.aero-dock-item-control::before {
+  content: "";
+  position: absolute;
+  inset: 0.14rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+.aero-dock-item-control::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  top: 0;
+  width: 88%;
+  height: 54%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.08));
+  border-radius: 999px;
+  transform: rotate(-10deg);
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.aero-dock-list.is-collapsed .aero-dock-item-control {
+  justify-content: center;
+  gap: 0;
+  width: 4rem;
+  min-height: 4rem;
+  flex: 0 0 4rem;
+  border-radius: 50%;
+  transform: translate3d(0, var(--dock-lift, 0px), 0) scale(var(--dock-scale, 1));
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+  will-change: transform;
+}
+
+.aero-dock-item-control:hover {
+  filter: saturate(1.12) brightness(1.05);
+}
+
+.aero-dock-list.is-collapsed .aero-dock-item-shell:hover .aero-dock-item-control,
+.aero-dock-list.is-collapsed .aero-dock-item-shell:focus-within .aero-dock-item-control {
+  transform: translate3d(0, min(var(--dock-lift, 0px), -6px), 0) scale(max(var(--dock-scale, 1), 1.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -14px 18px rgba(29, 155, 222, 0.25),
+    0 0 18px rgba(84, 219, 255, 0.26),
+    0 10px 18px -14px rgba(7, 91, 146, 0.66),
+    0 0 0 2px rgba(188, 245, 255, 0.56);
+}
+
+.aero-dock-item-shell:hover .aero-dock-item-orb,
+.aero-dock-item-shell:focus-within .aero-dock-item-orb {
+  transform: translate3d(0, min(var(--dock-orb-lift, 0px), -3px), 0) scale(max(var(--dock-orb-scale, 1), 1.08));
+  box-shadow:
+    0 0 max(var(--dock-orb-glow, 20px), 24px) rgba(78, 207, 255, 0.3),
+    0 10px 18px -10px rgba(7, 86, 142, 0.78);
+}
+
+.aero-dock-item-control:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 6px rgba(6, 82, 139, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
+    0 8px 15px -14px rgba(7, 91, 146, 0.52);
+}
+
+.aero-dock-item-control.is-active {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.98), transparent 24%),
+    linear-gradient(180deg, rgba(246, 255, 255, 0.99) 0%, rgba(147, 225, 251, 0.86) 42%, rgba(73, 193, 243, 0.72) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 -14px 18px rgba(29, 155, 222, 0.25),
+    0 0 18px rgba(84, 219, 255, 0.26),
+    0 10px 18px -14px rgba(7, 91, 146, 0.66),
+    0 0 0 2px rgba(188, 245, 255, 0.56);
+}
+
+.aero-dock-item-orb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transform: translate3d(0, var(--dock-orb-lift, 0px), 0) scale(var(--dock-orb-scale, 1));
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+  will-change: transform;
+  box-shadow:
+    0 0 var(--dock-orb-glow, 20px) rgba(78, 207, 255, 0.24),
+    0 6px 14px -10px rgba(7, 86, 142, 0.7);
+}
+
+.aero-dock-item-orb > svg {
+  width: 1.28rem;
+  height: 1.28rem;
+}
+
+.aero-dock-item-label {
+  position: relative;
+  z-index: 1;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.66);
+}
+
+.aero-dock-item-label.is-hidden {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.aero-dock-item-indicator {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  height: 0.5rem;
+  width: 0.5rem;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(109, 228, 255, 0.86) 40%, rgba(22, 173, 234, 0.98) 100%);
+  box-shadow: 0 0 10px rgba(83, 228, 255, 0.58);
+}
+
+.aero-dock-tooltip {
+  position: absolute;
+  left: calc(100% + 0.8rem);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(113, 190, 230, 0.94);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(183, 233, 250, 0.82));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 22px -16px rgba(8, 89, 145, 0.62);
+  color: #0c5a85;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.aero-dock-list.is-collapsed .aero-dock-item-shell:hover .aero-dock-tooltip,
+.aero-dock-list.is-collapsed .aero-dock-item-shell:focus-within .aero-dock-tooltip {
+  opacity: 1;
+}
+
+.aero-dock-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding: 0.7rem 0.8rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(110, 192, 230, 0.8);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(192, 238, 252, 0.74));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 10px 20px -18px rgba(7, 86, 143, 0.78);
+}
+
+.aero-dock-user.is-collapsed {
+  justify-content: center;
+  padding-left: 0.55rem;
+  padding-right: 0.55rem;
+}
+
+.aero-dock-user-orb {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(112, 201, 95, 0.8);
+  background: linear-gradient(180deg, rgba(237, 255, 183, 0.96), rgba(140, 226, 91, 0.92) 48%, rgba(90, 187, 51, 0.98));
+  color: #165738;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.aero-dock-user-copy {
+  min-width: 0;
+}
+
+.aero-dock-user-name,
+.aero-dock-user-role {
+  margin: 0;
+}
+
+.aero-dock-user-name {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0f5a83;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 8.6rem;
+}
+
+.aero-dock-user-role {
+  font-size: 0.69rem;
+  color: rgba(14, 92, 136, 0.74);
+}
+
+.aero-dock-user.is-collapsed .aero-dock-user-copy {
+  display: none;
+}
+
+.aero-dock-mobile-trigger {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 70;
+  display: inline-flex;
+  height: 3.4rem;
+  width: 3.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.aero-dock-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: rgba(8, 43, 73, 0.28);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: stretch;
+}
+
+.aero-dock-mobile-drawer {
+  position: relative;
+  width: min(20rem, 88vw);
+  margin: 1rem 0 1rem 1rem;
+  padding: 1rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(88, 180, 224, 0.96);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.95), transparent 28%),
+    linear-gradient(180deg, rgba(237, 252, 255, 0.95) 0%, rgba(173, 231, 251, 0.82) 44%, rgba(111, 201, 240, 0.65) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -24px 38px rgba(8, 110, 175, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 20px 42px -20px rgba(5, 87, 146, 0.6),
+    0 0 0 1px rgba(8, 107, 166, 0.28),
+    0 0 0 2px rgba(210, 247, 255, 0.46);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.aero-dock-mobile-feed {
+  margin-top: auto;
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f5d88;
+}
+
+@media (max-width: 1023px) {
+  .aero-dock-item-control {
+    min-height: 3.5rem;
+  }
+
+  .aero-dock-tooltip {
+    display: none;
+  }
+}
