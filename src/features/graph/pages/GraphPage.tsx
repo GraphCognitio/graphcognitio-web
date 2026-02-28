@@ -12,12 +12,12 @@ import {
   type Node,
   type NodeTypes,
 } from "@xyflow/react";
-import { ArrowLeft, Heart, LoaderCircle, Network, Plus, Reply, SendHorizontal } from "lucide-react";
+import { Heart, LoaderCircle, Network, Plus, Reply, SendHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConversationGraph } from "../../../api/graphApi";
 import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
-import { AeroScene } from "../../../components/layout/AeroScene";
+import { AppShell, createBackDockAction } from "../../../components/layout/AppShell";
 import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
@@ -385,18 +385,27 @@ export function GraphPage() {
 
   if (!rootId) {
     return (
-      <AeroScene>
+      <AppShell>
         <GlassCard className="mx-auto mt-8 max-w-2xl">
           <AeroToast message="Invalid root id" variant="error" />
         </GlassCard>
-      </AeroScene>
+      </AppShell>
     );
   }
 
   const graphError = (graphQuery.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
-
   return (
-    <AeroScene>
+    <AppShell
+      contextualActions={[
+        createBackDockAction(() => {
+          if (window.history.length > 1) {
+            navigate(-1);
+            return;
+          }
+          navigate("/feed");
+        }),
+      ]}
+    >
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="aero-heading text-3xl font-black">Conversation Graph</h1>
@@ -406,23 +415,6 @@ export function GraphPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            aria-label="Go back"
-            className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
-            onClick={() => {
-              if (window.history.length > 1) {
-                navigate(-1);
-                return;
-              }
-              navigate("/feed");
-            }}
-            type="button"
-          >
-            <AeroIconBadge className="h-4 w-4" tone="violet">
-              <ArrowLeft aria-hidden="true" size={9} />
-            </AeroIconBadge>
-            Back
-          </button>
           <GelButton aria-label="Increase graph depth" onClick={() => setDepth((current) => current + 1)} type="button">
             <AeroIconBadge className="h-5 w-5" tone="cyan">
               <Plus aria-hidden="true" size={11} />
@@ -614,6 +606,6 @@ export function GraphPage() {
           </aside>
         ) : null}
       </GlassCard>
-    </AeroScene>
+    </AppShell>
   );
 }

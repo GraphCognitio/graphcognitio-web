@@ -1,10 +1,10 @@
 import { type InfiniteData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { ArrowLeft, Heart, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
+import { Heart, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
-import { AeroScene } from "../../../components/layout/AeroScene";
+import { AppShell, createBackDockAction } from "../../../components/layout/AppShell";
 import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
@@ -89,11 +89,11 @@ export function PostDetailPage() {
 
   if (!id) {
     return (
-      <AeroScene>
+      <AppShell>
         <GlassCard className="mx-auto mt-8 max-w-2xl">
           <AeroToast message="Invalid post id" variant="error" />
         </GlassCard>
-      </AeroScene>
+      </AppShell>
     );
   }
 
@@ -111,29 +111,18 @@ export function PostDetailPage() {
   const parentPostId = post?.parentId ?? null;
   const replyError = (replyMutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
   const postError = (postQuery.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
-
   return (
-    <AeroScene>
-      <div className="mx-auto mt-6 max-w-5xl">
-        <button
-          aria-label="Back to feed"
-          className="aero-pill aero-focus-ring mb-3 inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
-          onClick={() => {
-            if (window.history.length > 1) {
-              navigate(-1);
-              return;
-            }
-            navigate("/feed");
-          }}
-          type="button"
-        >
-          <AeroIconBadge className="h-4 w-4" tone="violet">
-            <ArrowLeft aria-hidden="true" size={9} />
-          </AeroIconBadge>
-          Back to feed
-        </button>
-      </div>
-
+    <AppShell
+      contextualActions={[
+        createBackDockAction(() => {
+          if (window.history.length > 1) {
+            navigate(-1);
+            return;
+          }
+          navigate("/feed");
+        }),
+      ]}
+    >
       <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[2fr_1fr]">
         <GlassCard>
           {postQuery.isLoading ? (
@@ -263,6 +252,6 @@ export function PostDetailPage() {
           {replyMutation.isSuccess ? <AeroToast message="Reply sent" variant="success" /> : null}
         </GlassCard>
       </div>
-    </AeroScene>
+    </AppShell>
   );
 }
