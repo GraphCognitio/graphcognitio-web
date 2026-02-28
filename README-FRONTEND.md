@@ -149,5 +149,4 @@ Portfolio screenshots live in [`docs/screenshots`](./docs/screenshots/):
 - `createrootpost.png`
 - `postdetail.png`
 - `conversationgraph.png`
-- `mobilefeed.png`
 - `login.png`
