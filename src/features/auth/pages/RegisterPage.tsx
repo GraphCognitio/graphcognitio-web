@@ -9,6 +9,7 @@ import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
+import { AuthShowcase } from "../components/AuthShowcase";
 import { useAuth } from "../hooks/useAuth";
 
 type ProblemDetail = {
@@ -21,6 +22,7 @@ export function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const mutation = useMutation({
     mutationFn: registerRequest,
@@ -35,19 +37,32 @@ export function RegisterPage() {
   }
 
   const errorDetail = (mutation.error as AxiosError<ProblemDetail> | null)?.response?.data?.detail;
+  const passwordMismatch =
+    confirmPassword.length > 0 && password.length > 0 && password !== confirmPassword
+      ? "Passwords must match"
+      : null;
 
   return (
     <AeroScene>
-      <div className="mx-auto mt-8 max-w-md">
-        <GlassCard>
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+        <AuthShowcase
+          eyebrow="Portfolio-ready fullstack"
+          title="Start building your graph identity."
+          description="Create an account to publish root posts, reply through layered conversations, like nodes, and navigate the graph-oriented social MVP."
+        />
+
+        <GlassCard className="mx-auto w-full max-w-md p-6 md:p-7">
           <header className="mb-5 space-y-2">
-            <h1 className="aero-heading text-3xl font-black tracking-tight">Create Account</h1>
+            <h2 className="aero-heading text-3xl font-black tracking-tight">Create Account</h2>
             <p className="aero-subtitle text-sm">Join GraphCognitio</p>
           </header>
           <form
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault();
+              if (password !== confirmPassword) {
+                return;
+              }
               mutation.mutate({ name, email, password });
             }}
           >
@@ -80,11 +95,27 @@ export function RegisterPage() {
               type="password"
               value={password}
             />
-            <GelButton className="w-full" disabled={mutation.isPending} type="submit">
+            <AeroInput
+              autoComplete="new-password"
+              id="confirm-password"
+              label="Confirm password"
+              onChange={(event) => setConfirmPassword(event.currentTarget.value)}
+              placeholder="Repeat your password"
+              required
+              type="password"
+              value={confirmPassword}
+            />
+            <GelButton className="w-full" disabled={mutation.isPending || Boolean(passwordMismatch)} type="submit">
               {mutation.isPending ? <LoaderCircle aria-hidden="true" className="animate-spin" size={16} /> : null}
               Create account
             </GelButton>
           </form>
+
+          {passwordMismatch ? (
+            <div className="mt-4">
+              <AeroToast message={passwordMismatch} variant="error" />
+            </div>
+          ) : null}
 
           {mutation.isError ? (
             <div className="mt-4">

@@ -9,6 +9,7 @@ import { AeroInput } from "../../../components/ui/AeroInput";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
+import { AuthShowcase } from "../components/AuthShowcase";
 import { useAuth } from "../hooks/useAuth";
 
 type ProblemDetail = {
@@ -37,10 +38,16 @@ export function LoginPage() {
 
   return (
     <AeroScene>
-      <div className="mx-auto mt-10 max-w-md">
-        <GlassCard>
+      <div className="mx-auto grid min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
+        <AuthShowcase
+          eyebrow="Graph-first social"
+          title="Map conversations as living structures."
+          description="Sign in to explore an infinite root-feed canvas, open post details, and inspect conversation graphs built on layered replies."
+        />
+
+        <GlassCard className="mx-auto w-full max-w-md p-6 md:p-7">
           <header className="mb-5 space-y-2">
-            <h1 className="aero-heading text-3xl font-black tracking-tight">GraphCognitio</h1>
+            <h2 className="aero-heading text-3xl font-black tracking-tight">GraphCognitio</h2>
             <p className="aero-subtitle text-sm">Sign in to continue</p>
           </header>
           <form

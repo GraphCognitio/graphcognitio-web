@@ -142,10 +142,12 @@ src/
 
 ## Screenshots
 
-Sugestão de capturas para documentação do portfólio:
+Portfolio screenshots live in [`docs/screenshots`](./docs/screenshots/):
 
-- Login (Frutiger Aero)
-- Register (Frutiger Aero)
-- Feed canvas em zoom 1.0
-- Feed canvas com pan + painel lateral aberto
-- Graph view com side panel e ação Expand
+- `feed.png`
+- `dock.png`
+- `createrootpost.png`
+- `postdetail.png`
+- `conversationgraph.png`
+- `mobilefeed.png`
+- `login.png`
