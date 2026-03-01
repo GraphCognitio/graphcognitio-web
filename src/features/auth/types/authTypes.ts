@@ -1,7 +1,10 @@
+export type AuthRole = "USER" | "MOD" | "ADMIN";
+
 export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  role: AuthRole;
   createdAt: string;
 };
 

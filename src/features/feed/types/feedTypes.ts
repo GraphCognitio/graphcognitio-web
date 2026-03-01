@@ -15,3 +15,13 @@ export type FeedResponse = {
   items: PostResponse[];
   nextCursor: string | null;
 };
+
+export type ContextClusterResponse = {
+  mainTopic: string;
+  topicKeywords: string[];
+  highlights: PostResponse[];
+};
+
+export type ContextFeedResponse = {
+  clusters: ContextClusterResponse[];
+};

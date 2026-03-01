@@ -1,0 +1,298 @@
+/* 
+ * GRAPHCOGNITIO - FRUTIGER AERO FX
+ */
+
+/* --- BACKGROUND BOKEH & GLOWS --- */
+.background-fx {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sky-halo {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    width: min(38vw, 420px);
+    height: min(38vw, 420px);
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.26) 42%, rgba(255, 255, 255, 0) 76%);
+}
+
+.field-band {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    bottom: -4vh;
+    height: 32vh;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(170, 226, 139, 0.22) 18%, rgba(123, 190, 64, 0.75) 70%, rgba(82, 136, 32, 0.96) 100%);
+    border-radius: 50% 50% 0 0 / 22% 22% 0 0;
+    filter: blur(2px);
+}
+
+.lens-ring {
+    position: absolute;
+    inset: 10vh auto auto 8vw;
+    width: 28vw;
+    height: 28vw;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.6;
+    animation: float 20s infinite ease-in-out;
+}
+
+.orb-1 {
+    top: -10%;
+    left: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(118, 185, 0, 0.2) 70%);
+}
+
+.orb-2 {
+    bottom: -20%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(0, 198, 255, 0.4) 0%, rgba(0, 120, 215, 0.1) 70%);
+    animation-delay: -5s;
+}
+
+.orb-3 {
+    top: 40%;
+    left: -15%;
+    width: 35vw;
+    height: 35vw;
+    background: radial-gradient(circle, rgba(168, 255, 222, 0.5) 0%, rgba(71, 201, 93, 0.1) 70%);
+    animation-delay: -10s;
+}
+
+.orb-4 {
+    top: 20%;
+    right: 5%;
+    width: 25vw;
+    height: 25vw;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.1) 60%);
+    animation-delay: -2s;
+    mix-blend-mode: overlay;
+}
+
+.grid-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 40%, transparent 100%);
+}
+
+/* --- ANIMATIONS & BUBBLES --- */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(20px, -20px);
+    }
+}
+
+@keyframes bubbleRise {
+    0% {
+        transform: translateY(100vh) scale(0.5);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.8;
+    }
+
+    80% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(-20vh) scale(1.2);
+        opacity: 0;
+    }
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.1) 60%, transparent 80%);
+    box-shadow: inset 0 -4px 10px rgba(0, 150, 255, 0.2), inset 0 4px 10px rgba(255, 255, 255, 0.9), 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(2px);
+    animation: bubbleRise 15s infinite ease-in;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.b-1 {
+    width: 60px;
+    height: 60px;
+    left: 10%;
+    animation-duration: 22s;
+    animation-delay: 2s;
+}
+
+.b-2 {
+    width: 30px;
+    height: 30px;
+    left: 25%;
+    animation-duration: 16s;
+    animation-delay: 5s;
+}
+
+.b-3 {
+    width: 80px;
+    height: 80px;
+    left: 75%;
+    animation-duration: 25s;
+    animation-delay: 0s;
+}
+
+.b-4 {
+    width: 45px;
+    height: 45px;
+    left: 85%;
+    animation-duration: 19s;
+    animation-delay: 7s;
+}
+
+.b-5 {
+    width: 25px;
+    height: 25px;
+    left: 50%;
+    animation-duration: 14s;
+    animation-delay: 11s;
+}
+
+@keyframes pulseSparkle {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1) rotate(90deg);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: scale(0) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+.sparkle {
+    position: absolute;
+    background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.4) 30%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: overlay;
+    animation: pulseSparkle 4s infinite ease-in-out;
+    /* Starburst shape using clip-path */
+    clip-path: polygon(50% 0%, 55% 45%, 100% 50%, 55% 55%, 50% 100%, 45% 55%, 0% 50%, 45% 45%);
+}
+
+.s-1 {
+    width: 120px;
+    height: 120px;
+    top: 15%;
+    left: 20%;
+    animation-duration: 5s;
+    animation-delay: 0s;
+}
+
+.s-2 {
+    width: 80px;
+    height: 80px;
+    top: 60%;
+    left: 10%;
+    animation-duration: 7s;
+    animation-delay: 2s;
+}
+
+.s-3 {
+    width: 150px;
+    height: 150px;
+    top: 25%;
+    right: 15%;
+    animation-duration: 6s;
+    animation-delay: 1s;
+}
+
+.s-4 {
+    width: 60px;
+    height: 60px;
+    top: 70%;
+    right: 25%;
+    animation-duration: 4s;
+    animation-delay: 3s;
+}
+
+.s-5 {
+    width: 100px;
+    height: 100px;
+    top: 45%;
+    left: 50%;
+    animation-duration: 8s;
+    animation-delay: 4s;
+}
+
+/* --- CURSOR SPARKLES --- */
+.cursor-sparkle {
+    position: fixed;
+    width: 36px;
+    height: 36px;
+    background: radial-gradient(circle, rgba(255, 0, 150, 1) 0%, rgba(255, 20, 147, 0.9) 40%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%) scale(0);
+    mix-blend-mode: screen;
+    clip-path: polygon(50% 0%, 55% 45%, 100% 50%, 55% 55%, 50% 100%, 45% 55%, 0% 50%, 45% 45%);
+    animation: sparkleTrailAnim 0.7s ease-out forwards;
+}
+
+@keyframes sparkleTrailAnim {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translate(-50%, -80%) scale(1) rotate(90deg);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: translate(-50%, -150%) scale(0) rotate(180deg);
+        opacity: 0;
+    }
+}

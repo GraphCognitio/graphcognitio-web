@@ -10,6 +10,8 @@ import { AeroDockSidebar, type AeroDockActionItem } from "../nav/AeroDockSidebar
 import { AeroIconBadge } from "../ui/AeroIconBadge";
 import { AeroModal } from "../ui/AeroModal";
 import { AeroToast } from "../ui/AeroToast";
+import { BubbleLayer } from "../aero/BubbleLayer";
+import { MouseGlowLayer } from "../aero/MouseGlowLayer";
 import { GelButton } from "../ui/GelButton";
 import { AeroScene } from "./AeroScene";
 
@@ -95,6 +97,8 @@ export function AppShell({ children, contentClassName, contextualActions, onRoot
 
   return (
     <AeroScene className={sceneClassName} contentClassName={`max-w-[116rem] p-4 md:p-6 ${contentClassName ?? ""}`}>
+      <BubbleLayer />
+      <MouseGlowLayer />
       <AeroDockSidebar actions={globalActions} collapsed={dockCollapsed} onCollapsedChange={setDockCollapsed} />
       <div className={`relative ${dockCollapsed ? "lg:pl-[7.75rem] xl:pl-[8.5rem]" : "lg:pl-[16rem] xl:pl-[16.75rem]"}`}>
         {children}

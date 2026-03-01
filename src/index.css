@@ -3,6 +3,22 @@
 @tailwind utilities;
 
 :root {
+  /* Palette: Aqua, Sky Blue, Fresh Green, White */
+  --primary: #0078d7;
+  --primary-deep: #004e8c;
+  --accent: #76b900;
+  --sky-top: #0099ff;
+  --sky-mid: #66ccff;
+  --sky-bottom: #ccffff;
+  --field-top: #7bd32e;
+  --field-bottom: #397d02;
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.95);
+  --text-main: #1f2937;
+  --text-muted: #374151;
+  --shadow-soft: 0 12px 32px 0 rgba(0, 78, 140, 0.25);
+  --shadow-glow: 0 0 18px rgba(0, 153, 255, 0.4);
+
   font-family: "Trebuchet MS", "Segoe UI", Tahoma, Verdana, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -10,11 +26,42 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Custom Aero Scrollbar */
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #66ccff, #0099ff);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.9);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #0099ff, #0078d7);
+}
+
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   margin: 0;
   min-width: 320px;
+  min-height: 100vh;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.42) 11%, rgba(255, 255, 255, 0) 24%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 30%, var(--sky-bottom) 55%, #d7f6cf 56%, var(--field-top) 70%, var(--field-bottom) 100%);
+  background-attachment: fixed;
+  overflow-x: hidden;
 }
