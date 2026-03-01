@@ -34,3 +34,24 @@ export async function unlikePost(postId: string) {
   const response = await apiClient.delete<PostResponse>(`/posts/${postId}/likes`);
   return response.data;
 }
+
+export type UpdatePostPayload = {
+  postId: string;
+  content: string;
+};
+
+export async function updatePost({ postId, content }: UpdatePostPayload) {
+  const response = await apiClient.patch<PostResponse>(`/posts/${postId}`, { content });
+  return response.data;
+}
+
+export async function deletePost(postId: string) {
+  await apiClient.delete(`/posts/${postId}`);
+}
+
+export async function getRelatedPosts(postId: string, limit: number = 5) {
+  const response = await apiClient.get<PostResponse[]>(`/posts/${postId}/related`, {
+    params: { limit },
+  });
+  return response.data;
+}
