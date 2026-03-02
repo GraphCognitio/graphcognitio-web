@@ -3,7 +3,10 @@ export type AuthRole = "USER" | "MOD" | "ADMIN";
 export type AuthUser = {
   id: string;
   name: string;
+  username: string;
   email: string;
+  bio: string | null;
+  avatarUrl: string | null;
   role: AuthRole;
   createdAt: string;
 };

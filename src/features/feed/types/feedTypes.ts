@@ -2,8 +2,10 @@ export type PostResponse = {
   id: string;
   authorId: string;
   authorName: string;
+  authorUsername: string;
   content: string;
   createdAt: string;
+  updatedAt: string | null;
   parentId: string | null;
   rootId: string;
   replyCount: number;
