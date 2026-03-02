@@ -94,11 +94,10 @@ function ThreadBranch({
   return (
     <div className="space-y-3">
       <article
-        className={`rounded-[1.6rem] border px-4 py-4 shadow-[0_20px_45px_rgba(14,116,144,0.12)] backdrop-blur-md ${
-          isSelected
-            ? "border-cyan-200/95 bg-cyan-50/55"
-            : "border-white/55 bg-white/34"
-        }`}
+        className={`rounded-[1.6rem] border px-4 py-4 shadow-[0_20px_45px_rgba(14,116,144,0.12)] backdrop-blur-md ${isSelected
+          ? "border-cyan-200/95 bg-cyan-50/55"
+          : "border-white/55 bg-white/34"
+          }`}
         style={{ marginLeft: `${depth * 22}px` }}
       >
         <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
@@ -137,8 +136,9 @@ function ThreadBranch({
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold text-sky-900/75">{editContent.length}/500</span>
               <div className="flex items-center gap-2">
-                <button
-                  className="aero-pill aero-focus-ring px-3 py-2 text-xs font-semibold text-sky-900"
+                <GelButton
+                  variant="orange"
+                  className="px-3 py-2 text-xs"
                   disabled={pendingAction === "update"}
                   onClick={() => {
                     setIsEditing(false);
@@ -148,8 +148,9 @@ function ThreadBranch({
                   type="button"
                 >
                   Cancel
-                </button>
+                </GelButton>
                 <GelButton
+                  variant="green"
                   className="px-3 py-2 text-xs"
                   disabled={pendingAction === "update" || editContent.trim().length === 0}
                   onClick={async () => {
@@ -196,8 +197,9 @@ function ThreadBranch({
             Open
           </Link>
           {canEdit ? (
-            <button
-              className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-sky-900"
+            <GelButton
+              variant="cyan"
+              className="inline-flex items-center gap-1 px-3 py-2 text-xs"
               disabled={pendingAction !== null}
               onClick={() => {
                 setIsEditing((current) => !current);
@@ -210,11 +212,12 @@ function ThreadBranch({
                 <PencilLine aria-hidden="true" size={9} />
               </AeroIconBadge>
               Edit
-            </button>
+            </GelButton>
           ) : null}
           {canDelete ? (
-            <button
-              className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-65"
+            <GelButton
+              variant="orange"
+              className="inline-flex items-center gap-1 px-3 py-2 text-xs"
               disabled={pendingAction !== null || deleteBlockedByReplies}
               onClick={async () => {
                 if (!window.confirm("Delete this reply permanently?")) {
@@ -237,7 +240,7 @@ function ThreadBranch({
                 <Trash2 aria-hidden="true" size={9} />
               </AeroIconBadge>
               Delete
-            </button>
+            </GelButton>
           ) : null}
         </div>
 

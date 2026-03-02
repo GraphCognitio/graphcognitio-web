@@ -139,15 +139,15 @@ export function AppShell({ children, contentClassName, contextualActions, onRoot
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs font-semibold text-sky-900/75">{content.length}/500</span>
             <div className="flex items-center gap-2">
-              <button
-                className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
+              <GelButton
+                variant="orange"
                 disabled={createPostMutation.isPending}
                 onClick={() => setComposerOpen(false)}
                 type="button"
               >
                 Cancel
-              </button>
-              <GelButton aria-label="Publish post" disabled={!canSubmit || createPostMutation.isPending} type="submit">
+              </GelButton>
+              <GelButton aria-label="Publish post" variant="green" disabled={!canSubmit || createPostMutation.isPending} type="submit">
                 {createPostMutation.isPending ? (
                   <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
                 ) : (

@@ -207,11 +207,10 @@ export function AdminRolesPage() {
                       return (
                         <button
                           key={candidate.id}
-                          className={`flex w-full flex-col gap-1 rounded-[1.3rem] border px-4 py-3 text-left transition ${
-                            isSelected
+                          className={`flex w-full flex-col gap-1 rounded-[1.3rem] border px-4 py-3 text-left transition ${isSelected
                               ? "border-cyan-200/95 bg-cyan-50/60 shadow-[0_16px_36px_rgba(8,145,178,0.16)]"
                               : "border-white/45 bg-white/24 hover:bg-white/34"
-                          }`}
+                            }`}
                           onClick={() => {
                             setUserId(candidate.id);
                             setTargetRole(candidate.role);
@@ -285,7 +284,7 @@ export function AdminRolesPage() {
                   {isSelfTarget ? <p>This target matches your current account.</p> : null}
                   {searchedUsers.some((candidate) => candidate.id === normalizedUserId) ? <p>Selected from directory.</p> : null}
                 </div>
-                <GelButton aria-label="Update selected user role" disabled={!isValidUserId || updateRoleMutation.isPending} type="submit">
+                <GelButton variant="violet" aria-label="Update selected user role" disabled={!isValidUserId || updateRoleMutation.isPending} type="submit">
                   {updateRoleMutation.isPending ? (
                     <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
                   ) : (
@@ -454,6 +453,7 @@ export function AdminRolesPage() {
               </div>
 
               <GelButton
+                variant="violet"
                 aria-label="Trigger embeddings reindex"
                 disabled={!isValidReindexLimit || reindexMutation.isPending}
                 onClick={() => reindexMutation.mutate()}

@@ -65,9 +65,8 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
 
   return (
     <article
-      className={`aero-glass aero-feed-node aero-float aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition ${
-        seen ? "border-emerald-200/80 bg-emerald-50/25" : ""
-      }`}
+      className={`aero-glass aero-feed-node aero-float aero-focus-ring absolute flex flex-col overflow-hidden p-4 transition ${seen ? "border-emerald-200/80 bg-emerald-50/25" : ""
+        }`}
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -97,8 +96,25 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
 
       <header className="relative z-10 mb-3 flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-sky-900">{post.authorName}</p>
-          <p className="text-xs text-sky-900/70">{formatRelativeTime(post.createdAt)}</p>
+          {post.authorUsername ? (
+            <Link
+              to={`/profile/${post.authorUsername}`}
+              onClick={(event) => { event.stopPropagation(); event.nativeEvent.stopImmediatePropagation(); }}
+              className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-full border border-white/90 bg-gradient-to-b from-lime-400 to-green-500 px-3 py-1.5 text-sm font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.85)] shadow-[0_4px_10px_rgba(0,0,0,0.15),inset_0_2px_0_rgba(255,255,255,0.9),inset_0_-2px_0_rgba(0,0,0,0.1)] hover:-translate-y-0.5 hover:scale-105 transition-all"
+            >
+              <span className="absolute inset-x-0.5 top-0.5 h-[45%] rounded-[999px_999px_200px_200px/999px] bg-gradient-to-b from-white/95 to-white/10 pointer-events-none" />
+              <span className="relative z-10 h-5 w-5 rounded-full border border-white/80 bg-white/30 flex items-center justify-center text-[10px] font-black">
+                {post.authorName.charAt(0).toUpperCase()}
+              </span>
+              <span className="relative z-10 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] truncate max-w-[100px]">{post.authorName}</span>
+            </Link>
+          ) : (
+            <p className="text-sm font-bold text-sky-900">{post.authorName}</p>
+          )}
+          <p className="text-xs text-sky-900/70 mt-1">
+            {formatRelativeTime(post.createdAt)}
+            {post.updatedAt && <span className="ml-1 italic opacity-75">(edited)</span>}
+          </p>
         </div>
         <div className="flex items-center gap-1">
           {seen ? (
@@ -122,11 +138,10 @@ export function FeedNodeCard({ node, onBringToFront, seen, zIndex }: FeedNodeCar
       <footer className="relative z-10 mt-auto flex flex-nowrap items-center gap-2">
         <button
           aria-label={post.likedByMe ? `Unlike post ${post.id}` : `Like post ${post.id}`}
-          className={`aero-pill aero-focus-ring inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-70 ${
-            post.likedByMe
-              ? "text-rose-600"
-              : "text-sky-900"
-          }`}
+          className={`aero-pill aero-focus-ring inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-70 ${post.likedByMe
+            ? "text-rose-600"
+            : "text-sky-900"
+            }`}
           disabled={likeMutation.isPending}
           onClick={(event) => {
             event.stopPropagation();

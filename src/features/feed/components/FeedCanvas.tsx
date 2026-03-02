@@ -277,9 +277,9 @@ export function FeedCanvas({
       focusAnchorRef.current?.postId === focusPostId
         ? { x: focusAnchorRef.current.x, y: focusAnchorRef.current.y }
         : {
-            x: cameraRef.current.targetX,
-            y: cameraRef.current.targetY,
-          };
+          x: cameraRef.current.targetX,
+          y: cameraRef.current.targetY,
+        };
     focusAnchorRef.current = { postId: focusPostId, x: focusAnchorPosition.x, y: focusAnchorPosition.y };
 
     let node = worldRef.current.nodesById.get(focusPostId);
@@ -654,6 +654,7 @@ export function FeedCanvas({
 
           <div className="flex items-center gap-2 pb-1">
             <GelButton
+              variant="violet"
               aria-label="Zoom out"
               onClick={() => {
                 cameraRef.current.targetZoom = clamp(cameraRef.current.targetZoom - 0.15, MIN_ZOOM, MAX_ZOOM);
@@ -665,6 +666,7 @@ export function FeedCanvas({
               </AeroIconBadge>
             </GelButton>
             <GelButton
+              variant="cyan"
               aria-label="Zoom in"
               onClick={() => {
                 cameraRef.current.targetZoom = clamp(cameraRef.current.targetZoom + 0.15, MIN_ZOOM, MAX_ZOOM);

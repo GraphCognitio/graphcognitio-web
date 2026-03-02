@@ -169,24 +169,29 @@ export function PostDetailPage() {
                 <div>
                   <h1 className="aero-heading text-2xl font-black">{post.authorName}</h1>
                   <p className="aero-subtitle text-sm">
-                    {formatRelativeTime(post.createdAt)} · {post.replyCount} replies · {post.likeCount} likes
+                    {formatRelativeTime(post.createdAt)}
+                    {post.updatedAt && <span className="ml-1 italic opacity-75">(edited)</span>}
+                    <span className="mx-1">·</span> {post.replyCount} replies
+                    <span className="mx-1">·</span> {post.likeCount} likes
                   </p>
                 </div>
                 {user?.id === post.authorId || user?.role === "ADMIN" ? (
                   <div className="flex items-center gap-2">
                     {user?.id === post.authorId && (
-                      <button
-                        className="aero-pill aero-focus-ring px-3 py-1.5 text-xs font-bold text-sky-800"
+                      <GelButton
+                        variant="cyan"
+                        className="px-3 py-1.5 text-xs"
                         onClick={() => {
                           setEditContent(post.content);
                           setEditModalOpen(true);
                         }}
                       >
                         Edit
-                      </button>
+                      </GelButton>
                     )}
-                    <button
-                      className="aero-pill aero-focus-ring px-3 py-1.5 text-xs font-bold text-rose-700"
+                    <GelButton
+                      variant="orange"
+                      className="px-3 py-1.5 text-xs"
                       disabled={deleteMutation.isPending}
                       onClick={() => {
                         if (window.confirm("Are you sure you want to delete this post?")) {
@@ -195,7 +200,7 @@ export function PostDetailPage() {
                       }}
                     >
                       Delete
-                    </button>
+                    </GelButton>
                   </div>
                 ) : null}
               </header>
@@ -209,8 +214,8 @@ export function PostDetailPage() {
                 <button
                   aria-label={post.likedByMe ? "Unlike post" : "Like post"}
                   className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${post.likedByMe
-                      ? "text-rose-600"
-                      : "text-sky-900"
+                    ? "text-rose-600"
+                    : "text-sky-900"
                     }`}
                   disabled={likeMutation.isPending}
                   onClick={() => likeMutation.mutate()}
@@ -272,8 +277,8 @@ export function PostDetailPage() {
               <span className="text-xs font-semibold text-sky-900/75">{replyContent.length}/500</span>
               <div className="flex items-center gap-2">
                 {parentPostId ? (
-                  <button
-                    className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
+                  <GelButton
+                    variant="orange"
                     disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
                     onClick={() => {
                       replyMutation.mutate({ postId: parentPostId, content: replyContent.trim() });
@@ -281,10 +286,11 @@ export function PostDetailPage() {
                     type="button"
                   >
                     Reply parent
-                  </button>
+                  </GelButton>
                 ) : null}
 
                 <GelButton
+                  variant="green"
                   aria-label="Send reply"
                   disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
                   type="submit"
@@ -349,15 +355,15 @@ export function PostDetailPage() {
             value={editContent}
           />
           <div className="flex items-center justify-end gap-2 mt-4">
-            <button
-              className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
+            <GelButton
+              variant="orange"
               disabled={editMutation.isPending}
               onClick={() => setEditModalOpen(false)}
               type="button"
             >
               Cancel
-            </button>
-            <GelButton aria-label="Save changes" disabled={editMutation.isPending || !editContent.trim()} type="submit">
+            </GelButton>
+            <GelButton aria-label="Save changes" variant="green" disabled={editMutation.isPending || !editContent.trim()} type="submit">
               {editMutation.isPending ? <LoaderCircle className="animate-spin" size={14} /> : null}
               Save Changes
             </GelButton>
