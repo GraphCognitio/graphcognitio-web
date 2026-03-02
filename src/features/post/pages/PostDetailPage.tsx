@@ -3,9 +3,10 @@ import { AxiosError } from "axios";
 import { Heart, LoaderCircle, Network, Reply, SendHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getPostById, likePost, replyToPost, unlikePost } from "../../../api/postApi";
+import { deletePost, getPostById, getRelatedPosts, likePost, replyToPost, unlikePost, updatePost } from "../../../api/postApi";
 import { AppShell, createBackDockAction } from "../../../components/layout/AppShell";
 import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
+import { AeroModal } from "../../../components/ui/AeroModal";
 import { AeroToast } from "../../../components/ui/AeroToast";
 import { GelButton } from "../../../components/ui/GelButton";
 import { GlassCard } from "../../../components/ui/GlassCard";
@@ -30,6 +31,15 @@ export function PostDetailPage() {
     queryFn: () => getPostById(id!),
     enabled: Boolean(id),
   });
+
+  const relatedQuery = useQuery({
+    queryKey: ["post", id, "related"],
+    queryFn: () => getRelatedPosts(id!),
+    enabled: Boolean(id),
+  });
+
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [editContent, setEditContent] = useState("");
 
   const updateFeedCache = (updatedPost: PostResponse) => {
     queryClient.setQueriesData<InfiniteData<FeedResponse>>(
@@ -87,6 +97,23 @@ export function PostDetailPage() {
     },
   });
 
+  const editMutation = useMutation({
+    mutationFn: updatePost,
+    onSuccess: async (updatedPost) => {
+      setEditModalOpen(false);
+      queryClient.setQueryData(["post", id], updatedPost);
+      updateFeedCache(updatedPost);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePost,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["feed"] });
+      navigate("/feed");
+    },
+  });
+
   if (!id) {
     return (
       <AppShell>
@@ -138,11 +165,44 @@ export function PostDetailPage() {
 
           {post ? (
             <>
-              <header className="mb-4 border-b border-white/35 pb-4">
-                <h1 className="aero-heading text-2xl font-black">{post.authorName}</h1>
-                <p className="aero-subtitle text-sm">
-                  {formatRelativeTime(post.createdAt)} · {post.replyCount} replies · {post.likeCount} likes
-                </p>
+              <header className="mb-4 border-b border-white/35 pb-4 flex items-start justify-between">
+                <div>
+                  <h1 className="aero-heading text-2xl font-black">{post.authorName}</h1>
+                  <p className="aero-subtitle text-sm">
+                    {formatRelativeTime(post.createdAt)}
+                    {post.updatedAt && <span className="ml-1 italic opacity-75">(edited)</span>}
+                    <span className="mx-1">·</span> {post.replyCount} replies
+                    <span className="mx-1">·</span> {post.likeCount} likes
+                  </p>
+                </div>
+                {user?.id === post.authorId || user?.role === "ADMIN" ? (
+                  <div className="flex items-center gap-2">
+                    {user?.id === post.authorId && (
+                      <GelButton
+                        variant="cyan"
+                        className="px-3 py-1.5 text-xs"
+                        onClick={() => {
+                          setEditContent(post.content);
+                          setEditModalOpen(true);
+                        }}
+                      >
+                        Edit
+                      </GelButton>
+                    )}
+                    <GelButton
+                      variant="orange"
+                      className="px-3 py-1.5 text-xs"
+                      disabled={deleteMutation.isPending}
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this post?")) {
+                          deleteMutation.mutate(post.id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </GelButton>
+                  </div>
+                ) : null}
               </header>
 
               <article className="whitespace-pre-wrap text-[15px] leading-relaxed text-sky-950/95">{post.content}</article>
@@ -153,11 +213,10 @@ export function PostDetailPage() {
                 </span>
                 <button
                   aria-label={post.likedByMe ? "Unlike post" : "Like post"}
-                  className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${
-                    post.likedByMe
-                      ? "text-rose-600"
-                      : "text-sky-900"
-                  }`}
+                  className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${post.likedByMe
+                    ? "text-rose-600"
+                    : "text-sky-900"
+                    }`}
                   disabled={likeMutation.isPending}
                   onClick={() => likeMutation.mutate()}
                   type="button"
@@ -218,8 +277,8 @@ export function PostDetailPage() {
               <span className="text-xs font-semibold text-sky-900/75">{replyContent.length}/500</span>
               <div className="flex items-center gap-2">
                 {parentPostId ? (
-                  <button
-                    className="aero-pill aero-focus-ring px-4 py-2 text-xs font-semibold text-sky-900"
+                  <GelButton
+                    variant="orange"
                     disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
                     onClick={() => {
                       replyMutation.mutate({ postId: parentPostId, content: replyContent.trim() });
@@ -227,10 +286,11 @@ export function PostDetailPage() {
                     type="button"
                   >
                     Reply parent
-                  </button>
+                  </GelButton>
                 ) : null}
 
                 <GelButton
+                  variant="green"
                   aria-label="Send reply"
                   disabled={replyMutation.isPending || postQuery.isLoading || replyContent.trim().length === 0}
                   type="submit"
@@ -252,6 +312,64 @@ export function PostDetailPage() {
           {replyMutation.isSuccess ? <AeroToast message="Reply sent" variant="success" /> : null}
         </GlassCard>
       </div>
+
+      {relatedQuery.data && relatedQuery.data.length > 0 ? (
+        <div className="mx-auto mt-6 max-w-5xl">
+          <GlassCard>
+            <h2 className="aero-heading text-lg font-black mb-4">Related Posts</h2>
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+              {relatedQuery.data.map(rp => (
+                <Link key={rp.id} to={`/post/${rp.id}`} className="block">
+                  <article className="h-full rounded-[1.25rem] border border-white/40 bg-white/10 px-4 py-3 text-sm text-sky-900 transition-colors hover:bg-white/30">
+                    <div className="flex justify-between text-[11px] uppercase tracking-[0.12em] text-sky-900/50">
+                      <span className="truncate">{rp.authorName}</span>
+                    </div>
+                    <div className="mt-2 line-clamp-3 text-xs opacity-90">{rp.content}</div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+      ) : null}
+
+      <AeroModal
+        title="Edit post"
+        open={isEditModalOpen}
+        onClose={() => setEditModalOpen(false)}
+      >
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (editContent.trim()) {
+              editMutation.mutate({ postId: id!, content: editContent.trim() });
+            }
+          }}
+        >
+          <textarea
+            className="aero-input min-h-[180px] w-full resize-y"
+            maxLength={500}
+            onChange={(e) => setEditContent(e.currentTarget.value)}
+            required
+            value={editContent}
+          />
+          <div className="flex items-center justify-end gap-2 mt-4">
+            <GelButton
+              variant="orange"
+              disabled={editMutation.isPending}
+              onClick={() => setEditModalOpen(false)}
+              type="button"
+            >
+              Cancel
+            </GelButton>
+            <GelButton aria-label="Save changes" variant="green" disabled={editMutation.isPending || !editContent.trim()} type="submit">
+              {editMutation.isPending ? <LoaderCircle className="animate-spin" size={14} /> : null}
+              Save Changes
+            </GelButton>
+          </div>
+        </form>
+      </AeroModal>
     </AppShell>
   );
 }

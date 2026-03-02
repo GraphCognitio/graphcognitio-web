@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import type { FeedResponse } from "../features/feed/types/feedTypes";
+import type { ContextFeedResponse, FeedResponse } from "../features/feed/types/feedTypes";
 
 type FeedQueryParams = {
   cursor: string | null;
@@ -14,5 +14,12 @@ export async function getFeedPage({ cursor, limit }: FeedQueryParams) {
     },
   });
 
+  return response.data;
+}
+
+export async function getFeedContext(limit: number) {
+  const response = await apiClient.get<ContextFeedResponse>("/feed/context", {
+    params: { limit },
+  });
   return response.data;
 }

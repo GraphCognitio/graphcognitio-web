@@ -415,7 +415,7 @@ export function GraphPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <GelButton aria-label="Increase graph depth" onClick={() => setDepth((current) => current + 1)} type="button">
+          <GelButton variant="cyan" aria-label="Increase graph depth" onClick={() => setDepth((current) => current + 1)} type="button">
             <AeroIconBadge className="h-5 w-5" tone="cyan">
               <Plus aria-hidden="true" size={11} />
             </AeroIconBadge>
@@ -488,14 +488,15 @@ export function GraphPage() {
                 <h2 className="aero-heading text-lg font-black">Node preview</h2>
                 <p className="text-xs text-sky-900/75">{formatRelativeTime(selectedNode.createdAt)}</p>
               </div>
-              <button
+              <GelButton
+                variant="orange"
                 aria-label="Close node panel"
-                className="aero-pill aero-focus-ring px-3 py-1 text-xs font-bold text-sky-900"
+                className="px-3 py-1 text-xs"
                 onClick={() => setSelectedNodeId(null)}
                 type="button"
               >
                 Close
-              </button>
+              </GelButton>
             </header>
 
             <p className="mb-1 text-sm font-bold text-sky-900">{selectedNode.authorName}</p>
@@ -505,13 +506,10 @@ export function GraphPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button
+              <GelButton
+                variant="green"
                 aria-label={selectedNodeEngagement?.likedByMe ? "Unlike reply" : "Like reply"}
-                className={`aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold ${
-                  selectedNodeEngagement?.likedByMe
-                    ? "text-rose-600"
-                    : "text-sky-900"
-                }`}
+                className="inline-flex items-center gap-1 px-4 py-2 text-xs"
                 disabled={selectedNodeLikePending}
                 onClick={() => handleToggleNodeLike(selectedNode.id, Boolean(selectedNodeEngagement?.likedByMe))}
                 type="button"
@@ -520,16 +518,17 @@ export function GraphPage() {
                   <Heart aria-hidden="true" size={9} fill={selectedNodeEngagement?.likedByMe ? "currentColor" : "none"} />
                 </AeroIconBadge>
                 {selectedNodeEngagement?.likeCount ?? 0}
-              </button>
+              </GelButton>
               <Link className="aero-gel aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs" to={`/post/${selectedNode.id}`}>
                 <AeroIconBadge className="h-4 w-4" tone="cyan">
                   <Network aria-hidden="true" size={9} />
                 </AeroIconBadge>
                 Open post
               </Link>
-              <button
+              <GelButton
+                variant="violet"
                 aria-label="Expand graph depth"
-                className="aero-pill aero-focus-ring inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-sky-900"
+                className="inline-flex items-center gap-1 px-4 py-2 text-xs"
                 onClick={() => setDepth((current) => current + 1)}
                 type="button"
               >
@@ -537,7 +536,7 @@ export function GraphPage() {
                   <Network aria-hidden="true" size={9} />
                 </AeroIconBadge>
                 Expand
-              </button>
+              </GelButton>
             </div>
 
             <div className="my-3 border-t border-white/40" />
@@ -575,6 +574,7 @@ export function GraphPage() {
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] font-semibold text-sky-900/75">{replyContent.length}/500</span>
                   <GelButton
+                    variant="green"
                     aria-label="Reply to selected node"
                     className="px-3 py-1.5 text-[11px]"
                     disabled={!canSubmitReply || replyMutation.isPending}

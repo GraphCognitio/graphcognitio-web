@@ -12,6 +12,9 @@ const PostDetailPage = lazy(() =>
   import("../features/post/pages/PostDetailPage").then((module) => ({ default: module.PostDetailPage })),
 );
 const GraphPage = lazy(() => import("../features/graph/pages/GraphPage").then((module) => ({ default: module.GraphPage })));
+const UserProfilePage = lazy(() =>
+  import("../features/profile/pages/UserProfilePage").then((module) => ({ default: module.default })),
+);
 
 function withSuspense(element: ReactElement) {
   return <Suspense fallback={<RouteLoader />}>{element}</Suspense>;
@@ -55,6 +58,14 @@ export const router = createBrowserRouter([
     element: withSuspense(
       <ProtectedRoute>
         <GraphPage />
+      </ProtectedRoute>,
+    ),
+  },
+  {
+    path: "/profile/:username",
+    element: withSuspense(
+      <ProtectedRoute>
+        <UserProfilePage />
       </ProtectedRoute>,
     ),
   },
