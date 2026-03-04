@@ -4,13 +4,15 @@ import type { ContextFeedResponse, FeedResponse } from "../features/feed/types/f
 type FeedQueryParams = {
   cursor: string | null;
   limit: number;
+  sort?: "recent" | "relevant";
 };
 
-export async function getFeedPage({ cursor, limit }: FeedQueryParams) {
+export async function getFeedPage({ cursor, limit, sort }: FeedQueryParams) {
   const response = await apiClient.get<FeedResponse>("/feed", {
     params: {
       cursor: cursor ?? undefined,
       limit,
+      sort,
     },
   });
 
