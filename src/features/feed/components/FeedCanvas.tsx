@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { AlertCircle, LoaderCircle, ZoomIn, ZoomOut } from "lucide-react";
+import { AlertCircle, LoaderCircle, ZoomIn, ZoomOut, Crosshair } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getFeedPage } from "../../../api/feedApi";
 import { AeroIconBadge } from "../../../components/ui/AeroIconBadge";
@@ -32,9 +32,9 @@ type CameraState = {
   dragLastY: number;
 };
 
-const MIN_ZOOM = 0.5;
+const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 2;
-const FEED_LIMIT = 20;
+const FEED_LIMIT = 40;
 const WORLD_HALF_EXTENT = 12_000;
 const SEEN_INTERSECTION_RATIO = 0.35;
 const SEEN_MIN_VISIBLE_MS = 250;
@@ -43,6 +43,7 @@ type FeedCanvasProps = {
   viewerUserId: string | null;
   focusPostId?: string | null;
   focusPostPayload?: PostResponse | null;
+  feedSort: "recent" | "relevant";
   onFocusHandled?: (postId: string) => void;
 };
 
@@ -103,6 +104,7 @@ export function FeedCanvas({
   viewerUserId,
   focusPostId,
   focusPostPayload,
+  feedSort,
   onFocusHandled,
 }: FeedCanvasProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -141,10 +143,25 @@ export function FeedCanvas({
   const [, setSeenVersion] = useState(0);
   const [, setFrontOrderVersion] = useState(0);
 
+  useEffect(() => {
+    worldRef.current = createFeedWorld();
+    filteredNodesRef.current = [];
+    seenVisibleSinceRef.current.clear();
+    frontOrderRef.current.clear();
+    frontCounterRef.current = 0;
+    cameraRef.current.x = 0;
+    cameraRef.current.y = 0;
+    cameraRef.current.targetX = 0;
+    cameraRef.current.targetY = 0;
+    cameraRef.current.zoom = 1;
+    cameraRef.current.targetZoom = 1;
+    setWorldVersion((current) => current + 1);
+  }, [feedSort]);
+
   const feedQuery = useInfiniteQuery({
-    queryKey: ["feed", "root-posts"],
+    queryKey: ["feed", "root-posts", feedSort],
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => getFeedPage({ cursor: pageParam, limit: FEED_LIMIT }),
+    queryFn: ({ pageParam }) => getFeedPage({ cursor: pageParam, limit: FEED_LIMIT, sort: feedSort }),
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 
@@ -637,6 +654,21 @@ export function FeedCanvas({
               zIndex={frontOrderRef.current.get(node.id) ?? node.index}
             />
           ))}
+
+          {/* Core/Center Marker */}
+          <div
+            className="absolute left-0 top-0 flex flex-col items-center justify-center pointer-events-none z-0"
+            style={{
+              transform: `translate3d(-50%, -50%, 0)`,
+            }}
+          >
+            <div className="relative flex items-center justify-center w-32 h-32 rounded-full">
+              <div className="absolute inset-0 rounded-full border border-sky-300/30 bg-sky-100/10 shadow-[0_0_80px_rgba(14,165,233,0.15)] backdrop-blur-sm animate-[pulse_4s_ease-in-out_infinite]" />
+              <div className="absolute w-12 h-12 rounded-full bg-gradient-to-tr from-sky-400/20 to-sky-100/40 shadow-[inset_0_2px_10px_rgba(255,255,255,0.8),0_0_20px_rgba(56,189,248,0.4)] backdrop-blur-md" />
+              <div className="absolute w-3 h-3 rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,1)]" />
+              <div className="absolute -bottom-8 whitespace-nowrap aero-heading text-[10px] font-bold text-sky-800 tracking-widest uppercase opacity-60">Canvas Core</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -653,6 +685,22 @@ export function FeedCanvas({
           </div>
 
           <div className="flex items-center gap-2 pb-1">
+            <GelButton
+              variant="cyan"
+              aria-label="Back to center"
+              onClick={() => {
+                cameraRef.current.targetX = 0;
+                cameraRef.current.targetY = 0;
+                cameraRef.current.targetZoom = 1;
+              }}
+              type="button"
+            >
+              <AeroIconBadge tone="cyan">
+                <Crosshair aria-hidden="true" size={11} />
+              </AeroIconBadge>
+              <span className="sr-only md:not-sr-only md:text-[10px] md:font-bold md:tracking-wider md:uppercase px-1">Center</span>
+            </GelButton>
+            <div className="w-px h-8 bg-sky-900/10 mx-1" />
             <GelButton
               variant="violet"
               aria-label="Zoom out"

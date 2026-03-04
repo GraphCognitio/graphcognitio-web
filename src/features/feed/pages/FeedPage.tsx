@@ -21,6 +21,7 @@ export function FeedPage() {
   const [focusRequest, setFocusRequest] = useState<{ postId: string; post?: PostResponse } | null>(null);
   const [recentPosts, setRecentPosts] = useState<RecentPostItem[]>([]);
   const [recentCollapsed, setRecentCollapsed] = useState(false);
+  const [feedSort, setFeedSort] = useState<"recent" | "relevant">("recent");
 
   const handleFocusHandled = useCallback((postId: string) => {
     setFocusRequest((current) => (current?.postId === postId ? null : current));
@@ -56,10 +57,10 @@ export function FeedPage() {
   useEffect(() => {
     const state = location.state as
       | {
-          focusPostId?: string;
-          focusPost?: PostResponse;
-          showCreatedToast?: boolean;
-        }
+        focusPostId?: string;
+        focusPost?: PostResponse;
+        showCreatedToast?: boolean;
+      }
       | null;
 
     if (!state?.focusPostId && !state?.showCreatedToast) {
@@ -87,7 +88,27 @@ export function FeedPage() {
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="aero-heading text-3xl font-black">GraphCognitio Feed</h1>
-          <p className="aero-subtitle text-sm">Infinite pan canvas of root posts</p>
+          <p className="aero-subtitle text-sm mb-3">Infinite pan canvas of root posts</p>
+          <div className="flex bg-white/40 p-1 rounded-full w-fit backdrop-blur-md border border-white/50 shadow-inner">
+            <button
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${feedSort === "recent"
+                  ? "bg-white text-sky-900 shadow-sm"
+                  : "text-sky-800/70 hover:text-sky-900 hover:bg-white/50"
+                }`}
+              onClick={() => setFeedSort("recent")}
+            >
+              Recentes
+            </button>
+            <button
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${feedSort === "relevant"
+                  ? "bg-white text-sky-900 shadow-sm"
+                  : "text-sky-800/70 hover:text-sky-900 hover:bg-white/50"
+                }`}
+              onClick={() => setFeedSort("relevant")}
+            >
+              Relevantes
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <span className="aero-pill inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-sky-900">
@@ -107,6 +128,8 @@ export function FeedPage() {
 
       <div className="lg:pr-[352px]">
         <FeedCanvas
+          key={feedSort}
+          feedSort={feedSort}
           viewerUserId={user?.id ?? null}
           focusPostId={focusRequest?.postId ?? null}
           focusPostPayload={focusRequest?.post ?? null}

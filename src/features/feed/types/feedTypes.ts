@@ -11,6 +11,7 @@ export type PostResponse = {
   replyCount: number;
   likeCount: number;
   likedByMe: boolean;
+  topicKeywords?: string[];
 };
 
 export type FeedResponse = {
